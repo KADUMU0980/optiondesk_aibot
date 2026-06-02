@@ -1,0 +1,3493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OptionDesk Pro — Institutional Option Chain Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+:root {
+  --bg-void: #040608;
+  --bg-deep: #080c10;
+  --bg-panel: #0c1118;
+  --bg-card: #101820;
+  --bg-hover: #141e28;
+  --border: #1a2535;
+  --border-glow: #1e3048;
+  --text-primary: #e8f4ff;
+  --text-secondary: #7a9ab8;
+  --text-dim: #3a5268;
+  --neon-green: #00ff88;
+  --neon-blue: #00b4ff;
+  --neon-red: #ff3055;
+  --neon-yellow: #ffd700;
+  --neon-purple: #b44fff;
+  --neon-orange: #ff7700;
+  --green: #00c96a;
+  --red: #e83048;
+  --yellow: #e8c200;
+  --blue: #0090e0;
+  --teal: #00d4c8;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-code: 'Space Mono', monospace;
+  --glow-green: 0 0 12px rgba(0,255,136,0.4);
+  --glow-red: 0 0 12px rgba(255,48,85,0.4);
+  --glow-blue: 0 0 12px rgba(0,180,255,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
+
+/* ── LOGIN PAGE ── */
+#login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-void);
+  position: relative;
+  overflow: hidden;
+}
+
+#login-page::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,180,255,0.04) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%,-50%) scale(1.1); opacity: 1; }
+}
+
+.grid-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
+}
+
+.login-card {
+  position: relative;
+  z-index: 10;
+  width: 440px;
+  padding: 48px 40px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 2px;
+  box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 1px var(--neon-blue) inset;
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+}
+
+.login-title span { color: var(--neon-blue); }
+
+.login-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  margin-bottom: 36px;
+  text-transform: uppercase;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 24px;
+}
+
+.form-input:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 16px rgba(0,180,255,0.15);
+}
+
+.form-input::placeholder { color: var(--text-dim); }
+
+.btn-connect {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 1px solid var(--neon-blue);
+  color: var(--neon-blue);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-connect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--neon-blue);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+  z-index: -1;
+  opacity: 0.1;
+}
+
+.btn-connect:hover::before { transform: translateX(0); }
+.btn-connect:hover { color: #fff; box-shadow: var(--glow-blue); }
+
+.btn-connect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-error {
+  color: var(--neon-red);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,48,85,0.3);
+  background: rgba(255,48,85,0.05);
+  border-radius: 2px;
+  display: none;
+}
+
+.login-info {
+  margin-top: 24px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* ── DASHBOARD ── */
+#dashboard { display: none; }
+
+/* ── TOP NAV ── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 54px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-left { display: flex; align-items: center; gap: 20px; }
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-brand-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.nav-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+}
+
+.nav-title span { color: var(--neon-blue); }
+
+.index-selector {
+  display: flex;
+  gap: 6px;
+}
+
+.idx-btn {
+  padding: 6px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.idx-btn.active {
+  background: rgba(0,180,255,0.1);
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.spot-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.spot-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.spot-value {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+}
+
+.vix-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.vix-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vix-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--neon-yellow);
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+  animation: blink 2s ease-in-out infinite;
+}
+
+.status-dot.offline { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.last-update {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.btn-logout {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--neon-red); color: var(--neon-red); }
+
+/* ── MAIN LAYOUT ── */
+.main-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  gap: 0;
+  height: calc(100vh - 54px);
+  overflow: hidden;
+}
+
+.left-panel {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--bg-deep);
+}
+
+.center-panel {
+  overflow-y: auto;
+  background: var(--bg-void);
+}
+
+.right-panel {
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--bg-deep);
+}
+
+/* ── SECTION TITLES ── */
+.section-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-green { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
+.dot-blue { background: var(--neon-blue); box-shadow: 0 0 6px var(--neon-blue); }
+.dot-red { background: var(--neon-red); box-shadow: 0 0 6px var(--neon-red); }
+.dot-yellow { background: var(--neon-yellow); box-shadow: 0 0 6px var(--neon-yellow); }
+.dot-purple { background: var(--neon-purple); box-shadow: 0 0 6px var(--neon-purple); }
+
+/* ── SENTIMENT METER ── */
+.sentiment-block {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sentiment-gauge {
+  position: relative;
+  margin: 12px 0;
+}
+
+.gauge-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.gauge-bar-bg {
+  height: 8px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gauge-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.gauge-label-bear { color: var(--neon-red); }
+.gauge-label-bull { color: var(--neon-green); }
+
+.sentiment-rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.sentiment-cell {
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  text-align: center;
+}
+
+.sentiment-cell-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sentiment-cell-val {
+  font-family: var(--font-code);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sentiment-main-label {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin: 10px 0;
+  transition: color 0.3s;
+}
+
+.pcr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+.pcr-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
+.pcr-val { font-family: var(--font-code); font-size: 14px; color: var(--neon-yellow); }
+
+/* ── ALERTS ── */
+.alerts-block {
+  padding: 0;
+}
+
+.alert-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-8px); } to { opacity:1; transform:none; } }
+
+.alert-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.alert-time {
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-left: auto;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.alert-item.success { border-left: 2px solid var(--neon-green); }
+.alert-item.danger { border-left: 2px solid var(--neon-red); }
+.alert-item.warning { border-left: 2px solid var(--neon-yellow); }
+.alert-item.info { border-left: 2px solid var(--neon-blue); }
+
+.alert-item.success .alert-dot { background: var(--neon-green); }
+.alert-item.danger .alert-dot { background: var(--neon-red); }
+.alert-item.warning .alert-dot { background: var(--neon-yellow); }
+.alert-item.info .alert-dot { background: var(--neon-blue); }
+
+.alert-item.success { color: rgba(0,255,136,0.9); }
+.alert-item.danger { color: rgba(255,48,85,0.9); }
+.alert-item.warning { color: rgba(255,215,0,0.9); }
+.alert-item.info { color: rgba(0,180,255,0.9); }
+
+/* ── SUPPORT RESISTANCE ── */
+.sr-block {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  margin-bottom: 4px;
+  border-radius: 2px;
+  background: var(--bg-card);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-left: 3px solid transparent;
+  transition: background 0.2s;
+}
+
+.sr-row:hover { background: var(--bg-hover); }
+
+.sr-row.hard-res { border-left-color: var(--neon-red); }
+.sr-row.soft-res { border-left-color: rgba(255,48,85,0.4); }
+.sr-row.hard-sup { border-left-color: var(--neon-green); }
+.sr-row.soft-sup { border-left-color: rgba(0,255,136,0.4); }
+
+.sr-strike { font-weight: 700; font-size: 13px; }
+.sr-strike.res { color: var(--neon-red); }
+.sr-strike.sup { color: var(--neon-green); }
+
+.sr-meta { font-size: 9px; color: var(--text-dim); }
+.sr-badge {
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+.badge-weak { background: rgba(255,215,0,0.1); color: var(--neon-yellow); border: 1px solid rgba(255,215,0,0.3); }
+.badge-hard { background: rgba(255,48,85,0.1); color: var(--neon-red); border: 1px solid rgba(255,48,85,0.3); }
+.badge-strong { background: rgba(0,255,136,0.1); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.3); }
+
+/* ── INSIGHTS ── */
+.insights-block {
+  padding: 0;
+}
+
+.insight-item {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.insight-arrow { color: var(--neon-blue); flex-shrink: 0; font-size: 10px; margin-top: 2px; }
+
+/* ── GREEKS PANEL ── */
+.greeks-block {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.greeks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.greek-card {
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.greek-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.greek-val {
+  font-family: var(--font-code);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--neon-blue);
+}
+
+.greek-strike {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── TRADE SUGGESTIONS ── */
+.trade-block {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trade-card {
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.trade-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.trade-card.bullish::before { background: var(--neon-green); }
+.trade-card.bearish::before { background: var(--neon-red); }
+.trade-card.neutral::before { background: var(--neon-blue); }
+.trade-card.warning::before { background: var(--neon-yellow); }
+.trade-card.gamma::before { background: var(--neon-purple); }
+
+.trade-type {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.trade-card.bullish .trade-type { color: var(--neon-green); }
+.trade-card.bearish .trade-type { color: var(--neon-red); }
+.trade-card.neutral .trade-type { color: var(--neon-blue); }
+.trade-card.warning .trade-type { color: var(--neon-yellow); }
+.trade-card.gamma .trade-type { color: var(--neon-purple); }
+
+.trade-rows { font-family: var(--font-mono); font-size: 10px; }
+.trade-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.trade-row:last-child { border: none; }
+.trade-key { color: var(--text-dim); }
+.trade-val { color: var(--text-primary); font-weight: 500; }
+
+.confidence-bar {
+  height: 4px;
+  background: var(--bg-deep);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-green));
+  transition: width 0.5s;
+}
+
+.confidence-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.trade-reasons {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.trade-reasons div { padding: 1px 0; }
+.trade-reasons div::before { content: '• '; color: var(--neon-blue); }
+
+/* ── CENTER: OPTION CHAIN ── */
+.chain-header {
+  display: grid;
+  grid-template-columns: 80px 60px 60px 60px 60px 60px 60px 70px 60px 60px 60px 60px 60px 60px 80px;
+  gap: 0;
+  padding: 0 8px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.chain-col-hdr {
+  padding: 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+
+.chain-col-hdr:last-child { border-right: none; }
+.chain-col-hdr.ce { color: var(--neon-green); }
+.chain-col-hdr.pe { color: var(--neon-red); }
+.chain-col-hdr.strike { color: var(--neon-blue); font-weight: 700; }
+
+.chain-row {
+  display: grid;
+  grid-template-columns: 80px 60px 60px 60px 60px 60px 60px 70px 60px 60px 60px 60px 60px 60px 80px;
+  gap: 0;
+  padding: 0 8px;
+  border-bottom: 1px solid rgba(26,37,53,0.5);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.chain-row:hover { background: var(--bg-hover); }
+.chain-row.atm { background: rgba(0,180,255,0.04); border-left: 2px solid var(--neon-blue); }
+.chain-row.atm .strike-cell { color: var(--neon-blue) !important; }
+
+.chain-row.bullish-zone { background: rgba(0,255,136,0.03); }
+.chain-row.bearish-zone { background: rgba(255,48,85,0.03); }
+.chain-row.trap-zone { background: rgba(255,215,0,0.02); }
+
+.chain-cell {
+  padding: 7px 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-secondary);
+  border-right: 1px solid rgba(26,37,53,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chain-cell:last-child { border-right: none; }
+
+.strike-cell {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  font-size: 12px;
+  background: var(--bg-card);
+}
+
+.ce-ltp { color: var(--neon-green) !important; }
+.pe-ltp { color: var(--neon-red) !important; }
+
+.oi-bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oi-bg-ce {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  background: rgba(0,255,136,0.08);
+  border-radius: 1px;
+}
+
+.oi-bg-pe {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: rgba(255,48,85,0.08);
+  border-radius: 1px;
+}
+
+.chg-pos { color: var(--neon-green) !important; }
+.chg-neg { color: var(--neon-red) !important; }
+
+/* ── PCR mini bar ── */
+.pcr-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pcr-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+/* ── OI shift map (center) ── */
+.oi-map-section {
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* legend + controls row */
+.oi-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oi-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oi-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.oi-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.oi-map-summary {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.oi-sum-item { color: var(--text-dim); }
+.oi-sum-item span { font-weight: 700; }
+.oi-sum-bull span { color: var(--neon-green); }
+.oi-sum-bear span { color: var(--neon-red); }
+.oi-sum-neut span { color: var(--neon-yellow); }
+
+/* table wrapper */
+.oi-table-wrap {
+  overflow-x: auto;
+}
+
+/* each strike row */
+.oi-strike-row {
+  display: grid;
+  grid-template-columns: 62px 1fr 80px 1fr 62px;
+  align-items: center;
+  border-bottom: 1px solid rgba(26,37,53,0.6);
+  min-height: 36px;
+  transition: background 0.12s;
+  position: relative;
+  cursor: default;
+}
+
+.oi-strike-row:hover { background: var(--bg-hover); }
+.oi-strike-row:hover .oi-tooltip { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+/* ATM row special */
+.oi-strike-row.oir-atm {
+  background: rgba(0,180,255,0.04);
+  border-left: 2px solid var(--neon-blue);
+}
+
+/* signal-tinted rows */
+.oi-strike-row.oir-bull-strong { background: rgba(0,255,136,0.04); }
+.oi-strike-row.oir-bear-strong { background: rgba(255,48,85,0.04);  }
+.oi-strike-row.oir-neutral     { background: transparent; }
+
+/* CE side (left) */
+.oi-ce-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 4px 8px 4px 4px;
+  gap: 2px;
+}
+
+/* PE side (right) */
+.oi-pe-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px 4px 4px 8px;
+  gap: 2px;
+}
+
+.oi-side-oi {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.oi-side-chg {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+}
+
+.oi-side-vol {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+/* bar track — center column */
+.oi-bar-col {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+
+.oi-bar-track {
+  flex: 1;
+  height: 12px;
+  background: var(--bg-card);
+  border-radius: 1px;
+  overflow: hidden;
+  position: relative;
+}
+
+.oi-bar-fill-ce {
+  position: absolute;
+  right: 50%; top: 0; bottom: 0;
+  transition: width 0.4s ease;
+}
+
+.oi-bar-fill-pe {
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  transition: width 0.4s ease;
+}
+
+.oi-bar-fill-ce.writing   { background: linear-gradient(to left, #00ff88, rgba(0,255,136,0.15)); }
+.oi-bar-fill-ce.unwinding { background: linear-gradient(to left, #ff7700, rgba(255,119,0,0.15)); }
+.oi-bar-fill-ce.neutral   { background: linear-gradient(to left, rgba(0,255,136,0.5), rgba(0,255,136,0.05)); }
+
+.oi-bar-fill-pe.writing   { background: linear-gradient(to right, #ff3055, rgba(255,48,85,0.15)); }
+.oi-bar-fill-pe.unwinding { background: linear-gradient(to right, #b44fff, rgba(180,79,255,0.15)); }
+.oi-bar-fill-pe.neutral   { background: linear-gradient(to right, rgba(255,48,85,0.5), rgba(255,48,85,0.05)); }
+
+.oi-bar-center-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 1px;
+  height: 100%;
+  background: var(--border-glow);
+  z-index: 2;
+}
+
+/* Strike cell (center) */
+.oi-strike-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  gap: 2px;
+  position: relative;
+  z-index: 3;
+}
+
+.oi-strike-num {
+  font-family: var(--font-code);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.oir-atm .oi-strike-num { color: var(--neon-blue); }
+
+/* Signal badges */
+.oi-badges {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 80px;
+}
+
+.oi-badge {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.3px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* Badge color themes */
+.badge-ce-writing   { background: rgba(0,255,136,0.15);  color: #00ff88; border: 1px solid rgba(0,255,136,0.4); }
+.badge-ce-unwind    { background: rgba(255,119,0,0.15);  color: #ff7700; border: 1px solid rgba(255,119,0,0.4); }
+.badge-pe-writing   { background: rgba(255,48,85,0.15);  color: #ff3055; border: 1px solid rgba(255,48,85,0.4); }
+.badge-pe-unwind    { background: rgba(180,79,255,0.15); color: #b44fff; border: 1px solid rgba(180,79,255,0.4); }
+.badge-long-build   { background: rgba(0,180,255,0.15);  color: #00b4ff; border: 1px solid rgba(0,180,255,0.4); }
+.badge-short-cov    { background: rgba(0,212,200,0.15);  color: #00d4c8; border: 1px solid rgba(0,212,200,0.4); }
+.badge-resistance   { background: rgba(255,48,85,0.10);  color: #ff3055; border: 1px solid rgba(255,48,85,0.3); }
+.badge-support      { background: rgba(0,255,136,0.10);  color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
+.badge-atm          { background: rgba(0,180,255,0.12);  color: #00b4ff; border: 1px solid rgba(0,180,255,0.5); }
+.badge-trap         { background: rgba(255,215,0,0.12);  color: #ffd700; border: 1px solid rgba(255,215,0,0.4); }
+.badge-maxpain      { background: rgba(255,215,0,0.15);  color: #ffd700; border: 1px solid rgba(255,215,0,0.5); }
+.badge-neutral      { background: rgba(122,154,184,0.1); color: #7a9ab8; border: 1px solid rgba(122,154,184,0.3); }
+
+/* Tooltip */
+.oi-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%) translateY(4px);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 3px;
+  padding: 8px 10px;
+  width: 220px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.oi-tooltip-title {
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.oi-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.oi-tooltip-key { color: var(--text-dim); }
+.oi-tooltip-val { color: var(--text-primary); font-weight: 600; }
+.oi-tooltip-val.bull { color: var(--neon-green); }
+.oi-tooltip-val.bear { color: var(--neon-red); }
+.oi-tooltip-val.warn { color: var(--neon-yellow); }
+.oi-tooltip-val.info { color: var(--neon-blue); }
+
+.oi-tooltip-signal {
+  margin-top: 5px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+  color: var(--neon-yellow);
+  font-size: 9px;
+}
+
+/* Net OI bar under the table */
+.oi-net-bar-wrap {
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.oi-net-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-card);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.oi-net-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s, background 0.5s;
+}
+
+.oi-bar-label { width: 55px; color: var(--text-secondary); text-align: right; }
+.oi-bar-val   { width: 55px; color: var(--text-secondary); }
+
+/* ── LOADING STATE ── */
+.loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--neon-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── NOTIFICATION ── */
+#notif-container {
+  position: fixed;
+  top: 64px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.notif {
+  padding: 12px 16px;
+  background: var(--bg-panel);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  max-width: 320px;
+  border-left: 3px solid;
+  animation: slideIn 0.3s ease, fadeOut 0.4s ease 4.6s forwards;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+.notif.success { border-color: var(--neon-green); color: var(--neon-green); }
+.notif.danger { border-color: var(--neon-red); color: var(--neon-red); }
+.notif.warning { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.notif.info { border-color: var(--neon-blue); color: var(--neon-blue); }
+
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
+
+/* ── MOMENTUM SCANNER ── */
+.momentum-block {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.momentum-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(26,37,53,0.5);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.mom-label { color: var(--text-secondary); }
+.mom-val { color: var(--text-primary); }
+.mom-bar { flex: 1; height: 3px; background: var(--bg-card); margin: 0 8px; border-radius: 2px; overflow: hidden; }
+.mom-fill { height: 100%; background: var(--neon-blue); transition: width 0.4s; }
+
+/* ── VIX BLOCK ── */
+.vix-block {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.vix-meter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.vix-number {
+  font-family: var(--font-code);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 20px rgba(255,215,0,0.4);
+  min-width: 80px;
+}
+
+.vix-detail { flex: 1; }
+
+.vix-trend-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.vix-insight {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+  .main-layout { grid-template-columns: 220px 1fr 220px; }
+}
+
+/* ── MOBILE COMPONENTS (hidden by default) ── */
+.mobile-hamburger {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-hamburger:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+
+.mobile-drawer {
+  display: none;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-glow);
+  padding: 12px 16px;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  animation: slideDown 0.25s ease;
+  position: sticky;
+  top: 50px;
+  z-index: 99;
+}
+.mobile-drawer.open { display: flex; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
+
+/* ── BOTTOM TAB BAR ── */
+.bottom-tabs {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 101;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-glow);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.6);
+}
+.bottom-tabs-inner {
+  display: flex;
+  height: 58px;
+}
+.btab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  padding: 0;
+}
+.btab i { font-size: 18px; transition: all 0.2s; }
+.btab.active { color: var(--neon-blue); }
+.btab.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-blue);
+  border-radius: 0 0 2px 2px;
+}
+.btab:hover { color: var(--neon-blue); }
+.btab-badge {
+  position: absolute;
+  top: 6px; right: calc(50% - 18px);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--neon-red);
+  box-shadow: 0 0 6px var(--neon-red);
+}
+
+/* ── CHAIN SCROLL WRAPPER ── */
+.chain-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.chain-scroll-wrapper::-webkit-scrollbar { height: 4px; }
+.chain-scroll-wrapper::-webkit-scrollbar-track { background: var(--bg-deep); }
+.chain-scroll-wrapper::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
+
+/* ── MOBILE BREAKPOINT ── */
+@media (max-width: 900px) {
+  .mobile-hamburger { display: flex; }
+  .bottom-tabs { display: block; }
+
+  .topnav {
+    height: 50px;
+    padding: 0 12px;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .nav-left { gap: 10px; }
+  .nav-title { font-size: 14px; letter-spacing: 1px; }
+  .index-selector,
+  .nav-left > div:last-child,
+  .btn-logout,
+  .last-update { display: none !important; }
+  .nav-right { gap: 8px; }
+  .spot-badge { padding: 4px 8px; }
+  .spot-label { font-size: 7px; }
+  .spot-value { font-size: 13px; }
+  .vix-badge { padding: 4px 8px; }
+  .vix-label { font-size: 7px; }
+  .vix-val { font-size: 12px; }
+  .status-dot { width: 6px; height: 6px; }
+
+  .main-layout {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 50px - 58px);
+    overflow: hidden;
+  }
+  .left-panel, .center-panel, .right-panel {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border: none !important;
+  }
+  .left-panel.mobile-active,
+  .center-panel.mobile-active,
+  .right-panel.mobile-active { display: block; }
+  .left-panel > :last-child,
+  .right-panel > :last-child,
+  .center-panel > :last-child { padding-bottom: 24px; }
+
+  .chain-header, .chain-row { min-width: 900px; }
+  .oi-strike-row { grid-template-columns: 55px 1fr 70px 1fr 55px; }
+  .oi-side-oi { font-size: 9px; }
+  .oi-side-chg { font-size: 8px; }
+  .oi-side-vol { font-size: 7px; }
+  .oi-strike-num { font-size: 11px; }
+  .oi-badge { font-size: 6px; padding: 1px 3px; }
+
+  .section-title {
+    padding: 10px 12px 7px;
+    font-size: 8px;
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg-deep);
+  }
+  .center-panel .section-title { background: var(--bg-void); }
+
+  .login-card { width: 92%; max-width: 440px; padding: 32px 24px; }
+  .login-title { font-size: 24px; }
+  .login-subtitle { font-size: 10px; margin-bottom: 28px; }
+  .form-input { font-size: 16px; padding: 12px 14px; }
+  .btn-connect { padding: 14px; font-size: 13px; }
+
+  #ai-panel {
+    width: 100%; height: calc(100vh - 50px - 58px);
+    bottom: 58px; right: 0;
+    border-radius: 0; border: none;
+    border-top: 1px solid var(--neon-purple);
+  }
+  #ai-fab { display: none !important; }
+
+  .sentiment-rows { gap: 4px; }
+  .sentiment-cell { padding: 6px; }
+  .sentiment-cell-label { font-size: 7px; }
+  .sentiment-cell-val { font-size: 13px; }
+  .sentiment-main-label { font-size: 18px; }
+  .trade-card { padding: 10px; margin-bottom: 8px; }
+  .trade-type { font-size: 12px; }
+  .greeks-grid { gap: 6px; }
+  .greek-card { padding: 8px 10px; }
+  .greek-val { font-size: 14px; }
+  .vix-number { font-size: 28px; min-width: 60px; }
+  .momentum-row { font-size: 9px; }
+  #notif-container { top: 56px; right: 8px; left: 8px; }
+  .notif { max-width: 100%; font-size: 10px; }
+
+  .oi-map-header { flex-direction: column; gap: 6px; padding: 8px 10px; }
+  .oi-map-legend { gap: 8px; }
+  .oi-map-summary { gap: 6px; flex-wrap: wrap; }
+
+  /* Hide tooltips on mobile — they overlap and break layout */
+  .oi-tooltip { display: none !important; }
+
+  /* Chain header sticky in scroll wrapper */
+  .chain-scroll-wrapper .chain-header {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+  }
+
+  /* Make mobile drawer logout always visible */
+  .mobile-drawer .btn-logout { display: flex !important; }
+}
+
+/* ── SMALL PHONES ── */
+@media (max-width: 380px) {
+  .topnav { padding: 0 8px; }
+  .nav-title { font-size: 12px; letter-spacing: 0.5px; }
+  .spot-badge, .vix-badge { padding: 3px 6px; }
+  .spot-value { font-size: 11px; }
+  .vix-val { font-size: 10px; }
+  .nav-brand-icon { width: 22px; height: 22px; font-size: 10px; }
+  .section-title { font-size: 7px; letter-spacing: 2px; }
+  .sentiment-main-label { font-size: 16px; }
+  .vix-number { font-size: 24px; }
+  .btab { font-size: 8px; }
+  .btab i { font-size: 16px; }
+}
+
+/* ── EMPTY / ERROR ── */
+.empty-msg {
+  text-align: center;
+  padding: 30px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.chain-group-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: sticky;
+  top: 42px;
+  z-index: 5;
+}
+
+/* ── HEATMAP COLORS ── */
+.heat-low { background: rgba(0,255,136,0.05); }
+.heat-mid { background: rgba(0,255,136,0.12); }
+.heat-high { background: rgba(0,255,136,0.22); }
+.heat-low-r { background: rgba(255,48,85,0.05); }
+.heat-mid-r { background: rgba(255,48,85,0.12); }
+.heat-high-r { background: rgba(255,48,85,0.22); }
+
+/* ── TOP STRIKES PANEL ── */
+.top-strikes {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.strike-pill {
+  padding: 5px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.strike-pill span { display: block; font-size: 12px; font-weight: 700; }
+.strike-pill.atm { border-color: var(--neon-blue); }
+.strike-pill.atm span { color: var(--neon-blue); }
+
+/* ═══════════════════════════════
+   AI MARKET ASSISTANT STYLES
+═══════════════════════════════ */
+#ai-fab {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  z-index: 1000;
+  width: 58px; height: 58px;
+  background: linear-gradient(135deg, #1a0050, #4b00cc);
+  border: 1px solid var(--neon-purple);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 0 28px rgba(180,79,255,0.55), 0 4px 20px rgba(0,0,0,0.7);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fabPulse 3s ease-in-out infinite;
+}
+#ai-fab:hover { transform: scale(1.1); }
+@keyframes fabPulse {
+  0%,100% { box-shadow: 0 0 24px rgba(180,79,255,0.5),0 4px 20px rgba(0,0,0,0.6); }
+  50%      { box-shadow: 0 0 44px rgba(180,79,255,0.9),0 4px 24px rgba(0,0,0,0.7); }
+}
+#ai-fab-badge {
+  position: absolute; top:-4px; right:-4px;
+  width:18px; height:18px;
+  background: var(--neon-green); border-radius:50%;
+  font-size:8px; color:#000; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-mono);
+  border: 1px solid var(--bg-void);
+}
+#ai-panel {
+  position: fixed;
+  bottom: 98px; right: 28px;
+  z-index: 999;
+  width: 420px; height: 600px;
+  background: var(--bg-panel);
+  border: 1px solid var(--neon-purple);
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 0 60px rgba(180,79,255,0.2), 0 16px 64px rgba(0,0,0,0.85);
+  transform: scale(0.95) translateY(14px);
+  opacity: 0; pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;
+}
+#ai-panel.open { transform: scale(1) translateY(0); opacity:1; pointer-events:all; }
+
+.ai-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 11px 15px;
+  background: linear-gradient(135deg,rgba(26,0,80,0.7),rgba(75,0,204,0.3));
+  border-bottom: 1px solid rgba(180,79,255,0.35);
+  border-radius: 4px 4px 0 0;
+  flex-shrink:0;
+}
+.ai-hdr-left { display:flex; align-items:center; gap:10px; }
+.ai-hdr-icon {
+  width:32px; height:32px;
+  background: linear-gradient(135deg,#1a0050,var(--neon-purple));
+  border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; flex-shrink:0;
+}
+.ai-hdr-title {
+  font-family: var(--font-display); font-size:15px; font-weight:700;
+  letter-spacing:2px; color: var(--text-primary);
+}
+.ai-hdr-sub {
+  font-family: var(--font-mono); font-size:8px;
+  color: var(--neon-purple); letter-spacing:2px; text-transform:uppercase;
+}
+.ai-live-tag {
+  font-family: var(--font-mono); font-size:8px; color: var(--neon-green);
+  letter-spacing:1px; padding:3px 8px;
+  background: rgba(0,255,136,0.08);
+  border:1px solid rgba(0,255,136,0.25); border-radius:2px;
+  display:flex; align-items:center; gap:4px;
+}
+.ai-live-dot { width:5px; height:5px; border-radius:50%; background:var(--neon-green); animation:blink 1.5s ease-in-out infinite; }
+.ai-close {
+  background:none; border:none; cursor:pointer;
+  color:var(--text-dim); font-size:17px; padding:2px 6px; border-radius:2px;
+  transition: color 0.15s;
+}
+.ai-close:hover { color:var(--neon-red); }
+
+/* quick buttons */
+.ai-quick-row {
+  display:flex; gap:5px; padding:8px 10px;
+  background: var(--bg-deep);
+  border-bottom:1px solid var(--border);
+  overflow-x:auto; flex-shrink:0;
+}
+.ai-quick-row::-webkit-scrollbar { height:2px; }
+.ai-qbtn {
+  padding:4px 10px;
+  background: var(--bg-card); border:1px solid var(--border);
+  color:var(--text-secondary);
+  font-family:var(--font-mono); font-size:9px;
+  border-radius:2px; cursor:pointer; white-space:nowrap;
+  flex-shrink:0; transition: all 0.15s;
+}
+.ai-qbtn:hover { border-color:var(--neon-purple); color:var(--neon-purple); background:rgba(180,79,255,0.08); }
+
+/* messages */
+.ai-msgs {
+  flex:1; overflow-y:auto; padding:12px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.ai-msgs::-webkit-scrollbar { width:3px; }
+.ai-msgs::-webkit-scrollbar-thumb { background:var(--neon-purple); border-radius:2px; }
+
+.ai-msg { display:flex; flex-direction:column; gap:4px; animation:fadeIn 0.25s ease; }
+.ai-msg.user { align-items:flex-end; }
+.ai-msg.bot  { align-items:flex-start; }
+
+.ai-bubble {
+  max-width:90%; padding:10px 13px; border-radius:3px;
+  font-family:var(--font-mono); font-size:11px; line-height:1.65;
+}
+.ai-msg.user .ai-bubble {
+  background:rgba(0,68,204,0.2); border:1px solid rgba(0,180,255,0.3);
+  color:var(--text-primary); border-radius:3px 3px 0 3px;
+}
+.ai-msg.bot .ai-bubble {
+  background:var(--bg-card); border:1px solid rgba(180,79,255,0.2);
+  color:var(--text-secondary); border-radius:0 3px 3px 3px;
+  white-space:pre-wrap;
+}
+.ai-meta {
+  font-family:var(--font-mono); font-size:8px; color:var(--text-dim); padding:0 4px;
+}
+.ai-msg.bot .ai-meta { color:var(--neon-purple); }
+
+/* typing */
+.ai-typing-wrap { display:flex; flex-direction:column; gap:4px; }
+.ai-typing {
+  display:flex; align-items:center; gap:7px; padding:10px 13px;
+  background:var(--bg-card); border:1px solid rgba(180,79,255,0.2);
+  border-radius:0 3px 3px 3px; width:fit-content;
+  font-family:var(--font-mono); font-size:9px; color:var(--neon-purple);
+}
+.ai-dots { display:flex; gap:3px; }
+.ai-dots span {
+  width:5px; height:5px; border-radius:50%; background:var(--neon-purple);
+  animation:dotBounce 1.2s ease-in-out infinite;
+}
+.ai-dots span:nth-child(2){animation-delay:0.2s;}
+.ai-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dotBounce {
+  0%,60%,100%{transform:translateY(0);opacity:0.4;}
+  30%{transform:translateY(-5px);opacity:1;}
+}
+
+/* input row */
+.ai-input-row {
+  display:flex; gap:8px; padding:10px 12px;
+  background:var(--bg-deep); border-top:1px solid var(--border);
+  flex-shrink:0; border-radius:0 0 4px 4px;
+}
+.ai-input {
+  flex:1; padding:9px 12px;
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:2px; color:var(--text-primary);
+  font-family:var(--font-mono); font-size:11px;
+  outline:none; resize:none; min-height:38px; max-height:80px; line-height:1.4;
+  transition:border-color 0.2s;
+}
+.ai-input:focus { border-color:var(--neon-purple); box-shadow:0 0 10px rgba(180,79,255,0.15); }
+.ai-input::placeholder { color:var(--text-dim); }
+.ai-send {
+  padding:9px 14px; background:transparent;
+  border:1px solid var(--neon-purple); color:var(--neon-purple);
+  font-size:16px; cursor:pointer; border-radius:2px;
+  transition:all 0.2s; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.ai-send:hover { background:rgba(180,79,255,0.15); }
+.ai-send:disabled { opacity:0.4; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- ────────────────── LOGIN ────────────────── -->
+<div id="login-page">
+  <div class="grid-bg"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">⬡</div>
+      <div class="login-title">Option<span>Desk</span></div>
+    </div>
+    <div class="login-subtitle">Institutional Option Chain Terminal</div>
+
+    <label class="form-label" for="token-input">Upstox Access Token</label>
+    <input type="password" id="token-input" class="form-input"
+      placeholder="Enter your access token..." autocomplete="off"/>
+
+    <button class="btn-connect" id="connect-btn" onclick="handleLogin()">
+      ⬡ &nbsp; CONNECT TO MARKETS
+    </button>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="login-info">
+      <strong style="color:var(--text-secondary)">HOW TO GET TOKEN</strong><br/>
+      1. Login to Upstox Developer Console<br/>
+      2. Create / select your app<br/>
+      3. Generate Access Token for today<br/>
+      4. Paste above and connect
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────── DASHBOARD ────────────────── -->
+<div id="dashboard">
+  <!-- NAV -->
+  <nav class="topnav">
+    <div class="nav-left">
+      <button class="mobile-hamburger" id="mobile-hamburger" onclick="toggleMobileDrawer()">
+        <i class="fa-solid fa-bars" id="hamburger-icon"></i>
+      </button>
+      <div class="nav-brand">
+        <div class="nav-brand-icon">⬡</div>
+        <span class="nav-title">Option<span>Desk</span></span>
+      </div>
+      <div class="index-selector">
+        <button class="idx-btn active" id="btn-nifty" onclick="switchIndex('NIFTY')"><i class="fa-solid fa-chart-line" style="margin-right:4px;font-size:10px"></i>NIFTY</button>
+        <button class="idx-btn" id="btn-sensex" onclick="switchIndex('SENSEX')"><i class="fa-solid fa-chart-area" style="margin-right:4px;font-size:10px"></i>SENSEX</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:8px">
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:1px"><i class="fa-regular fa-calendar"></i> EXPIRY</span>
+        <select id="expiry-select" onchange="onExpiryChange(this.value)" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);font-family:var(--font-mono);font-size:10px;padding:5px 8px;border-radius:2px;outline:none;cursor:pointer"><option>Loading...</option></select>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="spot-badge">
+        <div>
+          <div class="spot-label" id="spot-label"><i class="fa-solid fa-signal" style="margin-right:2px"></i>NIFTY</div>
+          <div class="spot-value" id="spot-value">—</div>
+        </div>
+      </div>
+      <div class="vix-badge">
+        <div class="vix-label"><i class="fa-solid fa-bolt" style="margin-right:2px"></i>VIX</div>
+        <div class="vix-val" id="nav-vix">—</div>
+      </div>
+      <div class="status-dot" id="status-dot"></div>
+      <div class="last-update" id="last-update"><i class="fa-regular fa-clock"></i> Connecting...</div>
+      <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+    </div>
+  </nav>
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div style="display:flex;gap:6px">
+      <button class="idx-btn active" id="btn-nifty-m" onclick="switchIndex('NIFTY')"><i class="fa-solid fa-chart-line" style="margin-right:3px;font-size:10px"></i>NIFTY</button>
+      <button class="idx-btn" id="btn-sensex-m" onclick="switchIndex('SENSEX')"><i class="fa-solid fa-chart-area" style="margin-right:3px;font-size:10px"></i>SENSEX</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:1px"><i class="fa-regular fa-calendar"></i> EXPIRY</span>
+      <select id="expiry-select-m" onchange="onExpiryChange(this.value)" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);font-family:var(--font-mono);font-size:10px;padding:5px 8px;border-radius:2px;outline:none;cursor:pointer"><option>Loading...</option></select>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)"><i class="fa-regular fa-clock"></i> <span id="last-update-m">Connecting...</span></div>
+    <button class="btn-logout" style="display:flex;align-items:center;gap:4px" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-layout">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <!-- SENTIMENT -->
+      <div class="section-title"><div class="dot dot-blue"></div><i class="fa-solid fa-gauge-high" style="opacity:0.5;margin-right:2px"></i>Market Sentiment</div>
+      <div class="sentiment-block">
+        <div class="sentiment-main-label" id="sent-label">—</div>
+        <div class="gauge-label">
+          <span class="gauge-label-bear">BEAR <span id="sent-bear">0</span>%</span>
+          <span class="gauge-label-bull">BULL <span id="sent-bull">0</span>%</span>
+        </div>
+        <div class="gauge-bar-bg">
+          <div class="gauge-bar-fill" id="sent-bar" style="width:50%"></div>
+        </div>
+        <div class="sentiment-rows">
+          <div class="sentiment-cell">
+            <div class="sentiment-cell-label">Bullish</div>
+            <div class="sentiment-cell-val" style="color:var(--neon-green)" id="sc-bull">0%</div>
+          </div>
+          <div class="sentiment-cell">
+            <div class="sentiment-cell-label">Neutral</div>
+            <div class="sentiment-cell-val" style="color:var(--neon-blue)" id="sc-neut">0%</div>
+          </div>
+          <div class="sentiment-cell">
+            <div class="sentiment-cell-label">Bearish</div>
+            <div class="sentiment-cell-val" style="color:var(--neon-red)" id="sc-bear">0%</div>
+          </div>
+        </div>
+        <div class="pcr-row">
+          <span class="pcr-label">PCR (Overall)</span>
+          <span class="pcr-val" id="pcr-val">—</span>
+        </div>
+      </div>
+
+      <!-- VIX -->
+      <div class="section-title"><div class="dot dot-yellow"></div><i class="fa-solid fa-bolt" style="opacity:0.5;margin-right:2px"></i>VIX & Volatility</div>
+      <div class="vix-block">
+        <div class="vix-meter">
+          <div class="vix-number" id="vix-number">—</div>
+          <div class="vix-detail">
+            <div class="vix-trend-label" id="vix-state" style="color:var(--neon-yellow)">—</div>
+          </div>
+        </div>
+        <div class="vix-insight" id="vix-insight">Loading volatility data...</div>
+      </div>
+
+      <!-- SUPPORT / RESISTANCE -->
+      <div class="section-title"><div class="dot dot-red"></div><i class="fa-solid fa-shield-halved" style="opacity:0.5;margin-right:2px"></i>Resistance Zones</div>
+      <div class="sr-block" id="res-block">
+        <div class="empty-msg">Loading...</div>
+      </div>
+
+      <div class="section-title"><div class="dot dot-green"></div><i class="fa-solid fa-hand-holding-hand" style="opacity:0.5;margin-right:2px"></i>Support Zones</div>
+      <div class="sr-block" id="sup-block">
+        <div class="empty-msg">Loading...</div>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL -->
+    <div class="center-panel">
+      <!-- OI MAP -->
+      <div class="section-title" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dot dot-purple"></div>Deep OI Shift Analysis — Live Strike Intelligence
+        </div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);display:flex;gap:10px;letter-spacing:0">
+          <span style="color:var(--neon-green)">■</span> CE Writing &nbsp;
+          <span style="color:var(--neon-orange)">■</span> CE Unwind &nbsp;
+          <span style="color:var(--neon-red)">■</span> PE Writing &nbsp;
+          <span style="color:var(--neon-purple)">■</span> PE Unwind
+        </div>
+      </div>
+      <div class="oi-map-section" id="oi-map">
+        <div class="loading-row"><div class="spinner"></div>Fetching option chain data...</div>
+      </div>
+
+      <!-- OPTION CHAIN -->
+      <div class="section-title"><div class="dot dot-blue"></div><i class="fa-solid fa-link" style="opacity:0.5;margin-right:2px"></i>Live Option Chain</div>
+      <div class="chain-scroll-wrapper">
+      <div class="chain-header">
+        <div class="chain-col-hdr ce">CE LTP</div>
+        <div class="chain-col-hdr ce">CE OI</div>
+        <div class="chain-col-hdr ce">CE ΔOI</div>
+        <div class="chain-col-hdr ce">CE VOL</div>
+        <div class="chain-col-hdr ce">Δ</div>
+        <div class="chain-col-hdr ce">Γ</div>
+        <div class="chain-col-hdr ce">IV%</div>
+        <div class="chain-col-hdr strike">STRIKE</div>
+        <div class="chain-col-hdr pe">IV%</div>
+        <div class="chain-col-hdr pe">Γ</div>
+        <div class="chain-col-hdr pe">Δ</div>
+        <div class="chain-col-hdr pe">PE VOL</div>
+        <div class="chain-col-hdr pe">PE ΔOI</div>
+        <div class="chain-col-hdr pe">PE OI</div>
+        <div class="chain-col-hdr pe">PE LTP</div>
+      </div>
+      <div id="chain-body">
+        <div class="loading-row"><div class="spinner"></div>Waiting for data...</div>
+      </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <!-- ALERTS -->
+      <div class="section-title"><div class="dot dot-red"></div><i class="fa-solid fa-bell" style="opacity:0.5;margin-right:2px"></i>Live Alerts</div>
+      <div class="alerts-block" id="alerts-block">
+        <div class="empty-msg">No alerts yet...</div>
+      </div>
+
+      <!-- AI INSIGHTS -->
+      <div class="section-title"><div class="dot dot-blue"></div><i class="fa-solid fa-brain" style="opacity:0.5;margin-right:2px"></i>AI Insights</div>
+      <div class="insights-block" id="insights-block">
+        <div class="empty-msg">Loading insights...</div>
+      </div>
+
+      <!-- TRADE SUGGESTIONS -->
+      <div class="section-title"><div class="dot dot-green"></div><i class="fa-solid fa-lightbulb" style="opacity:0.5;margin-right:2px"></i>Trade Suggestions</div>
+      <div class="trade-block" id="trade-block">
+        <div class="empty-msg">Loading...</div>
+      </div>
+
+      <!-- GREEKS SUMMARY -->
+      <div class="section-title"><div class="dot dot-purple"></div><i class="fa-solid fa-calculator" style="opacity:0.5;margin-right:2px"></i>Greeks Summary</div>
+      <div class="greeks-block" id="greeks-block">
+        <div class="greeks-grid" id="greeks-grid">
+          <div class="empty-msg" style="grid-column:1/-1">Loading greeks...</div>
+        </div>
+      </div>
+
+      <!-- MOMENTUM SCANNER -->
+      <div class="section-title"><div class="dot dot-yellow"></div><i class="fa-solid fa-rocket" style="opacity:0.5;margin-right:2px"></i>Momentum Scanner</div>
+      <div class="momentum-block" id="momentum-block">
+        <div class="empty-msg">Loading...</div>
+      </div>
+    </div>
+  </div>
+  <!-- Bottom Tab Bar -->
+  <div class="bottom-tabs" id="bottom-tabs">
+    <div class="bottom-tabs-inner">
+      <button class="btab" id="btab-sentiment" onclick="mobileTabSwitch('sentiment')">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Sentiment</span>
+      </button>
+      <button class="btab active" id="btab-chain" onclick="mobileTabSwitch('chain')">
+        <i class="fa-solid fa-table-columns"></i>
+        <span>Chain</span>
+      </button>
+      <button class="btab" id="btab-alerts" onclick="mobileTabSwitch('alerts')">
+        <i class="fa-solid fa-bell"></i>
+        <span>Alerts</span>
+      </button>
+      <button class="btab" id="btab-ai" onclick="mobileTabSwitch('ai')">
+        <i class="fa-solid fa-robot"></i>
+        <span>AI</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notif-container"></div>
+
+<!-- ═══════════════════════════════════════
+     AI MARKET ASSISTANT PANEL
+═══════════════════════════════════════ -->
+<button id="ai-fab" onclick="aiToggle()" title="AI Market Assistant">
+  🤖<div id="ai-fab-badge">AI</div>
+</button>
+
+<div id="ai-panel">
+  <div class="ai-hdr">
+    <div class="ai-hdr-left">
+      <div class="ai-hdr-icon">🤖</div>
+      <div>
+        <div class="ai-hdr-title">MARKET<span style="color:var(--neon-purple)">AI</span></div>
+        <div class="ai-hdr-sub">Rule-Based Options Analyst · No API Required</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="ai-live-tag"><div class="ai-live-dot"></div>LIVE DATA</div>
+      <button class="ai-close" onclick="aiToggle()">✕</button>
+    </div>
+  </div>
+
+  <div class="ai-quick-row">
+    <button class="ai-qbtn" onclick="aiAsk('market bias')">📊 Market Bias</button>
+    <button class="ai-qbtn" onclick="aiAsk('support resistance')">🎯 S/R Zones</button>
+    <button class="ai-qbtn" onclick="aiAsk('best trade')">💹 Best Trade</button>
+    <button class="ai-qbtn" onclick="aiAsk('oi analysis')">🔍 OI Analysis</button>
+    <button class="ai-qbtn" onclick="aiAsk('trap detection')">⚠️ Trap Detect</button>
+    <button class="ai-qbtn" onclick="aiAsk('vix analysis')">🌡 VIX Signal</button>
+    <button class="ai-qbtn" onclick="aiAsk('pcr signal')">📉 PCR Signal</button>
+    <button class="ai-qbtn" onclick="aiAsk('institutional activity')">🏦 Institutions</button>
+  </div>
+
+  <div class="ai-msgs" id="ai-msgs">
+    <div class="ai-msg bot">
+      <div class="ai-bubble">⬡ OptionDesk AI ready — no API key needed.
+
+I analyse your live option chain in real time using built-in rule-based intelligence: OI walls, PCR, VIX, Greeks, S/R zones, trap detection, and SMC concepts.
+
+Try a quick button above, or ask me anything:
+• "What is the market bias right now?"
+• "Which strikes are institutions defending?"
+• "Is there a bull trap forming?"
+• "Give me a trade setup with entry and SL"</div>
+      <div class="ai-meta">OPTIONDESK AI · READY</div>
+    </div>
+  </div>
+
+  <div class="ai-input-row">
+    <textarea class="ai-input" id="ai-input"
+      placeholder="Ask about market bias, S/R, OI, trade setups..."
+      rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSend();}"></textarea>
+    <button class="ai-send" id="ai-send-btn" onclick="aiSend()">➤</button>
+  </div>
+</div>
+
+<script>
+// ───────────────────────────────────────────────
+// STATE
+// ───────────────────────────────────────────────
+let currentIndex = 'NIFTY';
+let refreshTimer = null;
+let lastAlertMsgs = new Set();
+
+// ───────────────────────────────────────────────
+// HELPERS
+// ───────────────────────────────────────────────
+function fmt(n) {
+  if (n == null || isNaN(n)) return '—';
+  n = Number(n);
+  if (Math.abs(n) >= 1e7)  return (n/1e7).toFixed(1)+'Cr';
+  if (Math.abs(n) >= 1e5)  return (n/1e5).toFixed(1)+'L';
+  if (Math.abs(n) >= 1000) return (n/1000).toFixed(1)+'K';
+  return n.toFixed(0);
+}
+function fmtP(n) {
+  if (!n || n === 0) return '—';
+  n = Number(n);
+  if (n >= 1000) return (n/1000).toFixed(1)+'K';
+  return n.toFixed(1);
+}
+function fmtPrice(n) {
+  if (!n) return '—';
+  return Number(n).toLocaleString('en-IN', {maximumFractionDigits:2, minimumFractionDigits:2});
+}
+function clamp(v,lo,hi) { return Math.max(lo,Math.min(hi,v)); }
+
+// ───────────────────────────────────────────────
+// AUTH
+// ───────────────────────────────────────────────
+async function handleLogin() {
+  const token = document.getElementById('token-input').value.trim();
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('connect-btn');
+  if (!token) { showLoginError('Please enter your Upstox access token'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⟳  Connecting...';
+  errEl.style.display = 'none';
+
+  try {
+    const res  = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({token})
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('upstox_token', token);
+      showDashboard();
+    } else {
+      showLoginError(data.error || 'Authentication failed — check your token');
+      btn.disabled = false;
+      btn.textContent = '⬡  CONNECT TO MARKETS';
+    }
+  } catch(e) {
+    showLoginError('Connection error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '⬡  CONNECT TO MARKETS';
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function showDashboard() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard').style.display  = 'block';
+  initMobileView();
+  startRefresh();
+}
+
+async function handleLogout() {
+  await fetch('/api/logout', {method:'POST'});
+  localStorage.removeItem('upstox_token');
+  clearInterval(refreshTimer);
+  document.getElementById('dashboard').style.display  = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('token-input').value = '';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('upstox_token');
+  if (saved) document.getElementById('token-input').value = saved;
+});
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('login-page').style.display !== 'none') handleLogin();
+});
+
+// ───────────────────────────────────────────────
+// INDEX / EXPIRY SWITCH
+// ───────────────────────────────────────────────
+function switchIndex(idx) {
+  currentIndex = idx;
+  document.getElementById('btn-nifty').classList.toggle('active', idx==='NIFTY');
+  document.getElementById('btn-sensex').classList.toggle('active', idx==='SENSEX');
+  // Sync mobile buttons
+  const nm = document.getElementById('btn-nifty-m');
+  const sm = document.getElementById('btn-sensex-m');
+  if (nm) nm.classList.toggle('active', idx==='NIFTY');
+  if (sm) sm.classList.toggle('active', idx==='SENSEX');
+  document.getElementById('spot-label').textContent = idx;
+  clearChain();
+  fetchAndRender();
+}
+
+async function onExpiryChange(expiry) {
+  if (!expiry || expiry === 'Loading...') return;
+  try {
+    await fetch(`/api/set_expiry/${currentIndex}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({expiry})
+    });
+    clearChain();
+    fetchAndRender();
+  } catch(e) { console.error(e); }
+}
+
+function updateExpirySelector(expiries, active) {
+  const sel = document.getElementById('expiry-select');
+  const selM = document.getElementById('expiry-select-m');
+  if (!expiries || !expiries.length) return;
+  const html = expiries.map(e =>
+    `<option value="${e}" ${e===active?'selected':''}>${e}</option>`
+  ).join('');
+  sel.innerHTML = html;
+  if (selM) selM.innerHTML = html;
+}
+
+function clearChain() {
+  document.getElementById('chain-body').innerHTML =
+    '<div class="loading-row"><div class="spinner"></div>Fetching chain data...</div>';
+  document.getElementById('oi-map').innerHTML =
+    '<div class="loading-row"><div class="spinner"></div>Loading OI map...</div>';
+}
+
+// ───────────────────────────────────────────────
+// REFRESH LOOP
+// ───────────────────────────────────────────────
+function startRefresh() {
+  fetchAndRender();
+  refreshTimer = setInterval(fetchAndRender, 10000);
+}
+
+async function fetchAndRender() {
+  try {
+    const res = await fetch(`/api/chain/${currentIndex}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    renderAll(data);
+    aiData = data;
+    updateStatus(true, data.last_update);
+  } catch(e) {
+    updateStatus(false, null);
+  }
+}
+
+function updateStatus(ok, ts) {
+  const dot = document.getElementById('status-dot');
+  const upd = document.getElementById('last-update');
+  const updM = document.getElementById('last-update-m');
+  dot.className = 'status-dot' + (ok ? '' : ' offline');
+  if (ts) {
+    const d = new Date(ts);
+    const t = d.toLocaleTimeString('en-IN');
+    upd.textContent = t;
+    if (updM) updM.textContent = t;
+  } else {
+    upd.textContent = 'Disconnected';
+    if (updM) updM.textContent = 'Disconnected';
+  }
+}
+
+// ───────────────────────────────────────────────
+// RENDER ALL
+// ───────────────────────────────────────────────
+function renderAll(data) {
+  const { chain, spot, vix, sentiment, support_resistance,
+          trade_suggestions, greeks_summary, insights, alerts,
+          expiries, expiry } = data;
+
+  if (expiries && expiries.length) updateExpirySelector(expiries, expiry);
+  if (spot)     { document.getElementById('spot-value').textContent = fmtPrice(spot); }
+  if (vix)      { document.getElementById('nav-vix').textContent = vix.toFixed(1); renderVix(vix); }
+  if (sentiment) renderSentiment(sentiment);
+  if (support_resistance) renderSR(support_resistance);
+  if (alerts)    renderAlerts(alerts);
+  if (insights)  renderInsights(insights);
+  if (trade_suggestions) renderTrades(trade_suggestions);
+  if (greeks_summary)    renderGreeks(greeks_summary);
+
+  if (chain && chain.length > 0) {
+    renderOIMap(chain, spot);
+    renderChain(chain, spot, expiry);
+    renderMomentum(chain, spot);
+  } else if (chain && chain.length === 0) {
+    document.getElementById('chain-body').innerHTML =
+      '<div class="loading-row" style="color:var(--neon-yellow)">⏳ Waiting for market data... (markets may be closed)</div>';
+    document.getElementById('oi-map').innerHTML =
+      '<div class="empty-msg">No chain data available for this expiry</div>';
+  }
+}
+
+// ───────────────────────────────────────────────
+// VIX
+// ───────────────────────────────────────────────
+function renderVix(vix) {
+  document.getElementById('vix-number').textContent = vix.toFixed(1);
+  let state, insight, color;
+  if      (vix < 12) { state='ULTRA LOW';  color='var(--neon-green)';  insight='Extreme complacency. Theta decay dominant. Option sellers favored. IV crush risk high.'; }
+  else if (vix < 15) { state='LOW';        color='var(--neon-green)';  insight='VIX supportive for bullish continuation. Low fear. Option premium sellers advantaged.'; }
+  else if (vix < 18) { state='MODERATE';   color='var(--neon-yellow)'; insight='Normal volatility. Balanced premiums. Directional plays viable.'; }
+  else if (vix < 22) { state='ELEVATED';   color='var(--neon-orange)'; insight='Volatility expansion detected. Gamma risk increasing. Expect wider intraday ranges.'; }
+  else               { state='HIGH FEAR';  color='var(--neon-red)';    insight='Volatility spike! Possible premium crush post-event. Avoid naked short options. Gamma risk extreme.'; }
+  const el = document.getElementById('vix-state');
+  el.textContent = state; el.style.color = color;
+  document.getElementById('vix-insight').textContent = insight;
+  document.getElementById('vix-number').style.color = color;
+}
+
+// ───────────────────────────────────────────────
+// SENTIMENT
+// ───────────────────────────────────────────────
+function renderSentiment(s) {
+  document.getElementById('sent-bull').textContent = s.bullish || 0;
+  document.getElementById('sent-bear').textContent = s.bearish || 0;
+  document.getElementById('sc-bull').textContent   = (s.bullish||0) + '%';
+  document.getElementById('sc-neut').textContent   = (s.neutral||0) + '%';
+  document.getElementById('sc-bear').textContent   = (s.bearish||0) + '%';
+  const score = s.score || 50;
+  document.getElementById('sent-bar').style.width = clamp(score, 5, 95) + '%';
+  const lbl = document.getElementById('sent-label');
+  lbl.textContent = s.label || 'NEUTRAL';
+  lbl.style.color = s.label==='BULLISH' ? 'var(--neon-green)' :
+                    s.label==='BEARISH' ? 'var(--neon-red)'   : 'var(--neon-blue)';
+  if (s.pcr != null) document.getElementById('pcr-val').textContent = Number(s.pcr).toFixed(2);
+}
+
+// ───────────────────────────────────────────────
+// S/R ZONES
+// ───────────────────────────────────────────────
+function renderSR(sr) {
+  renderZones(sr.resistance || [], 'res-block', 'res');
+  renderZones(sr.support    || [], 'sup-block', 'sup');
+}
+function renderZones(zones, elId, type) {
+  const el = document.getElementById(elId);
+  if (!zones.length) { el.innerHTML='<div class="empty-msg">No zones detected</div>'; return; }
+  const isRes = type==='res';
+  el.innerHTML = zones.map(z => {
+    const cls = z.strength==='hard' ? (isRes?'hard-res':'hard-sup') : (isRes?'soft-res':'soft-sup');
+    const badge = z.weakening ? '<span class="sr-badge badge-weak">WEAKENING</span>'
+                : z.strengthening ? '<span class="sr-badge badge-strong">' + (isRes?'STRONG':'ABSORBING') + '</span>'
+                : '<span class="sr-badge badge-' + (z.strength==='hard'?(isRes?'hard':'strong'):'weak') + '">' + z.strength.toUpperCase() + '</span>';
+    return `<div class="sr-row ${cls}">
+      <div>
+        <div class="sr-strike ${type}">${Math.round(z.strike)}</div>
+        <div class="sr-meta">OI: ${fmt(z.oi)} | ΔOI: ${fmt(z.chg_oi)}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+// ───────────────────────────────────────────────
+// ALERTS
+// ───────────────────────────────────────────────
+function renderAlerts(alerts) {
+  const el = document.getElementById('alerts-block');
+  if (!alerts.length) { el.innerHTML='<div class="empty-msg">No alerts</div>'; return; }
+  alerts.forEach(a => {
+    if (!lastAlertMsgs.has(a.msg)) { lastAlertMsgs.add(a.msg); showNotif(a.msg, a.level); }
+  });
+  el.innerHTML = alerts.map(a => `
+    <div class="alert-item ${a.level}">
+      <div class="alert-dot"></div>
+      <div>${a.msg}</div>
+      <div class="alert-time">${a.time}</div>
+    </div>`).join('');
+}
+
+// ───────────────────────────────────────────────
+// INSIGHTS
+// ───────────────────────────────────────────────
+function renderInsights(insights) {
+  const el = document.getElementById('insights-block');
+  if (!insights.length) { el.innerHTML='<div class="empty-msg">No insights</div>'; return; }
+  el.innerHTML = insights.map(i =>
+    `<div class="insight-item"><span class="insight-arrow">▶</span>${i}</div>`
+  ).join('');
+}
+
+// ───────────────────────────────────────────────
+// TRADE SUGGESTIONS
+// ───────────────────────────────────────────────
+function renderTrades(trades) {
+  const el = document.getElementById('trade-block');
+  if (!trades.length) { el.innerHTML='<div class="empty-msg">No suggestions</div>'; return; }
+  el.innerHTML = trades.map(t => `
+    <div class="trade-card ${t.color}">
+      <div class="trade-type">${t.type}</div>
+      <div class="trade-rows">
+        <div class="trade-row"><span class="trade-key">Entry</span><span class="trade-val" style="font-size:10px">${t.entry}</span></div>
+        <div class="trade-row"><span class="trade-key">SL</span><span class="trade-val" style="color:var(--neon-red);font-size:10px">${t.sl}</span></div>
+        <div class="trade-row"><span class="trade-key">Target</span><span class="trade-val" style="color:var(--neon-green);font-size:10px">${t.target}</span></div>
+        ${t.max_pain ? `<div class="trade-row"><span class="trade-key">Max Pain</span><span class="trade-val" style="color:var(--neon-yellow)">${t.max_pain}</span></div>` : ''}
+        ${t.bias_score ? `<div class="trade-row"><span class="trade-key">Bias</span><span class="trade-val" style="color:var(--text-secondary);font-size:9px">${t.bias_score}</span></div>` : ''}
+      </div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:${t.confidence}%"></div></div>
+      <div class="confidence-label">Confidence: ${t.confidence}%</div>
+      <div class="trade-reasons">${(t.reasons||[]).map(r=>`<div>${r}</div>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ───────────────────────────────────────────────
+// GREEKS
+// ───────────────────────────────────────────────
+function renderGreeks(g) {
+  if (!g || !g.atm_strike) return;
+  document.getElementById('greeks-grid').innerHTML = `
+    <div class="greek-card">
+      <div class="greek-name">ATM Delta CE</div>
+      <div class="greek-val" style="color:var(--neon-green)">${(g.atm_ce_delta||0).toFixed(3)}</div>
+      <div class="greek-strike">@ ${Math.round(g.atm_strike)}</div>
+    </div>
+    <div class="greek-card">
+      <div class="greek-name">ATM Delta PE</div>
+      <div class="greek-val" style="color:var(--neon-red)">${(g.atm_pe_delta||0).toFixed(3)}</div>
+      <div class="greek-strike">@ ${Math.round(g.atm_strike)}</div>
+    </div>
+    <div class="greek-card">
+      <div class="greek-name">ATM Gamma</div>
+      <div class="greek-val" style="color:var(--neon-purple)">${(g.atm_gamma||0).toFixed(5)}</div>
+      <div class="greek-strike">Max @ ${Math.round(g.max_gamma_strike||0)}</div>
+    </div>
+    <div class="greek-card">
+      <div class="greek-name">ATM Theta</div>
+      <div class="greek-val" style="color:var(--neon-orange)">${(g.atm_theta||0).toFixed(1)}</div>
+      <div class="greek-strike">per day</div>
+    </div>
+    <div class="greek-card">
+      <div class="greek-name">Avg CE IV</div>
+      <div class="greek-val" style="color:var(--neon-blue)">${(g.avg_ce_iv||0).toFixed(1)}%</div>
+      <div class="greek-strike">Call IV</div>
+    </div>
+    <div class="greek-card">
+      <div class="greek-name">Avg PE IV</div>
+      <div class="greek-val" style="color:var(--neon-yellow)">${(g.avg_pe_iv||0).toFixed(1)}%</div>
+      <div class="greek-strike">Put IV</div>
+    </div>`;
+}
+
+// ───────────────────────────────────────────────
+// OI MAP
+// ───────────────────────────────────────────────
+function analyzeStrike(row, spot, maxCeOI, maxPeOI, maxChgOI) {
+  // ──────────────────────────────────────────────────
+  // INSTITUTIONAL OI SIGNAL DETECTION ENGINE
+  // Logic: Change in OI + Price position + Volume + Premium
+  // ──────────────────────────────────────────────────
+  const s        = row.strike;
+  const ce_oi    = row.ce_oi    || 0;
+  const pe_oi    = row.pe_oi    || 0;
+  const ce_chg   = row.ce_chg_oi || 0;
+  const pe_chg   = row.pe_chg_oi || 0;
+  const ce_vol   = row.ce_vol   || 0;
+  const pe_vol   = row.pe_vol   || 0;
+  const ce_ltp   = row.ce_ltp   || 0;
+  const pe_ltp   = row.pe_ltp   || 0;
+  const ce_delta = row.ce_delta || 0;
+  const pe_delta = row.pe_delta || 0;
+  const ce_iv    = row.ce_iv    || 0;
+  const pe_iv    = row.pe_iv    || 0;
+  const pcr      = row.pcr      || 0;
+
+  const isAbove = s > spot;
+  const isBelow = s < spot;
+  const isAtm   = Math.abs(s - spot) < 60;
+  const isDeepOtm = Math.abs(s - spot) > Math.abs(spot * 0.02);
+
+  // Thresholds — dynamic based on max values in chain
+  const chgThresh = maxChgOI * 0.05;   // 5% of max change = meaningful
+  const oiStrong  = maxCeOI  * 0.65;   // top 35% = strong OI
+  const oiMega    = maxCeOI  * 0.85;   // top 15% = mega OI wall
+
+  const badges  = [];   // { label, cls, priority }
+  const signals = [];   // tooltip signal lines
+
+  // ── CE (CALL) SIGNALS ──────────────────────────────
+  if (ce_chg > chgThresh) {
+    // OI increasing on CE side
+    if (isAbove) {
+      // Above spot + CE OI rising = Call Writing (bears adding shorts)
+      const intensity = ce_chg > chgThresh * 3 ? 'Strong ' : '';
+      badges.push({ label: intensity + 'CE Writing', cls: 'badge-ce-writing', p: 10 });
+      signals.push({ k: 'Signal', v: intensity + 'Call Writing — bears adding CE shorts above spot', cls: 'bear' });
+      if (ce_oi >= oiStrong) {
+        badges.push({ label: 'Resistance', cls: 'badge-resistance', p: 9 });
+        signals.push({ k: 'Zone', v: ce_oi >= oiMega ? 'MEGA Resistance Wall' : 'Strong Resistance', cls: 'bear' });
+      }
+    } else if (isBelow) {
+      // Below spot + CE OI rising = Long Buildup (bulls buying calls expecting rise)
+      badges.push({ label: 'Long Buildup', cls: 'badge-long-build', p: 8 });
+      signals.push({ k: 'Signal', v: 'Long Buildup — CE buyers accumulating below spot', cls: 'info' });
+    } else {
+      // ATM CE OI rising
+      badges.push({ label: 'ATM CE Build', cls: 'badge-atm', p: 7 });
+      signals.push({ k: 'Signal', v: 'ATM call buildup — directional positioning', cls: 'info' });
+    }
+  } else if (ce_chg < -chgThresh) {
+    // OI decreasing on CE side
+    if (isAbove) {
+      // Above spot + CE OI falling = Call Unwinding (shorts covering = bullish)
+      const intensity = ce_chg < -chgThresh * 3 ? 'Aggressive ' : '';
+      badges.push({ label: intensity + 'CE Unwind', cls: 'badge-ce-unwind', p: 10 });
+      signals.push({ k: 'Signal', v: intensity + 'Call Unwinding — resistance weakening, shorts exiting', cls: 'bull' });
+      if (Math.abs(ce_chg) > ce_oi * 0.1) {
+        badges.push({ label: 'Short Covering', cls: 'badge-short-cov', p: 9 });
+        signals.push({ k: 'Action', v: 'Short Covering — significant CE OI exit above spot', cls: 'bull' });
+      }
+    } else if (isBelow) {
+      // Below spot + CE OI falling = Long Liquidation
+      badges.push({ label: 'Long Exit', cls: 'badge-trap', p: 7 });
+      signals.push({ k: 'Signal', v: 'Call Long Liquidation — bulls exiting below spot', cls: 'warn' });
+    }
+  }
+
+  // ── PE (PUT) SIGNALS ──────────────────────────────
+  if (pe_chg > chgThresh) {
+    // OI increasing on PE side
+    if (isBelow) {
+      // Below spot + PE OI rising = Put Writing (bulls adding PE shorts = support)
+      const intensity = pe_chg > chgThresh * 3 ? 'Strong ' : '';
+      badges.push({ label: intensity + 'PE Writing', cls: 'badge-pe-writing', p: 10 });
+      signals.push({ k: 'Signal', v: intensity + 'Put Writing — bulls defending floor below spot', cls: 'bull' });
+      if (pe_oi >= oiStrong) {
+        badges.push({ label: 'PE Support', cls: 'badge-support', p: 9 });
+        signals.push({ k: 'Zone', v: pe_oi >= oiMega ? 'MEGA Support Wall' : 'Strong Support', cls: 'bull' });
+      }
+    } else if (isAbove) {
+      // Above spot + PE OI rising = Long Buildup (puts being bought as hedge = caution)
+      badges.push({ label: 'Put Hedge', cls: 'badge-long-build', p: 6 });
+      signals.push({ k: 'Signal', v: 'Put Buying above spot — downside hedge accumulation', cls: 'warn' });
+    } else {
+      // ATM PE OI rising
+      badges.push({ label: 'ATM PE Build', cls: 'badge-atm', p: 7 });
+      signals.push({ k: 'Signal', v: 'ATM put buildup — bears positioning / hedging', cls: 'warn' });
+    }
+  } else if (pe_chg < -chgThresh) {
+    // OI decreasing on PE side
+    if (isBelow) {
+      // Below spot + PE OI falling = Put Unwinding (support eroding = bearish)
+      const intensity = pe_chg < -chgThresh * 3 ? 'Aggressive ' : '';
+      badges.push({ label: intensity + 'PE Unwind', cls: 'badge-pe-unwind', p: 10 });
+      signals.push({ k: 'Signal', v: intensity + 'Put Unwinding — support weakening, bears exiting', cls: 'bear' });
+      if (Math.abs(pe_chg) > pe_oi * 0.1) {
+        badges.push({ label: 'Support Fail', cls: 'badge-trap', p: 9 });
+        signals.push({ k: 'Warning', v: 'Support floor collapsing — significant PE OI exit', cls: 'bear' });
+      }
+    } else if (isAbove) {
+      // Above spot + PE OI falling = Short Covering on puts (bullish)
+      badges.push({ label: 'PE Short Cov', cls: 'badge-short-cov', p: 8 });
+      signals.push({ k: 'Signal', v: 'Put Short Covering above spot — bullish reversal signal', cls: 'bull' });
+    }
+  }
+
+  // ── COMBINED SIGNALS ──────────────────────────────
+  // Bull Trap: CE writing heavy + PE unwinding at same strike
+  if (ce_chg > chgThresh && pe_chg < -chgThresh && isAbove) {
+    badges.push({ label: 'Bull Trap', cls: 'badge-trap', p: 11 });
+    signals.push({ k: 'Combined', v: 'Bull Trap — CE writing + PE unwinding simultaneously', cls: 'warn' });
+  }
+
+  // Bear Trap: PE writing heavy + CE unwinding at same strike
+  if (pe_chg > chgThresh && ce_chg < -chgThresh && isBelow) {
+    badges.push({ label: 'Bear Trap', cls: 'badge-trap', p: 11 });
+    signals.push({ k: 'Combined', v: 'Bear Trap — PE writing + CE unwinding simultaneously', cls: 'bull' });
+  }
+
+  // Max Pain proximity
+  // (skip if not passed)
+
+  // ATM badge
+  if (isAtm && badges.length === 0) {
+    badges.push({ label: 'ATM', cls: 'badge-atm', p: 5 });
+    signals.push({ k: 'Zone', v: 'At-The-Money — highest gamma, max pin risk', cls: 'info' });
+  }
+
+  // IV skew signal for tooltip
+  if (ce_iv > 0 && pe_iv > 0) {
+    const skew = pe_iv - ce_iv;
+    if (skew > 3)  signals.push({ k: 'IV Skew', v: `Put premium ${skew.toFixed(1)}% > Call — fear tilt`, cls: 'bear' });
+    if (skew < -2) signals.push({ k: 'IV Skew', v: `Call premium ${(-skew).toFixed(1)}% > Put — upside demand`, cls: 'bull' });
+  }
+
+  // Sort by priority, limit badges shown
+  badges.sort((a,b) => b.p - a.p);
+
+  // Determine row sentiment class
+  const isBullish = badges.some(b => ['badge-ce-unwind','badge-pe-writing','badge-short-cov','badge-support'].includes(b.cls));
+  const isBearish = badges.some(b => ['badge-ce-writing','badge-pe-unwind','badge-resistance','badge-trap'].includes(b.cls));
+  const rowCls    = isAtm ? 'oir-atm' : (isBullish && !isBearish ? 'oir-bull-strong' : (isBearish && !isBullish ? 'oir-bear-strong' : 'oir-neutral'));
+
+  return { badges: badges.slice(0,3), signals, rowCls, isAtm };
+}
+
+function renderOIMap(chain, spot) {
+  const el = document.getElementById('oi-map');
+  if (!chain.length) { el.innerHTML='<div class="empty-msg">No data</div>'; return; }
+
+  // Take 14 strikes nearest ATM — 7 above, 7 below
+  const sorted  = [...chain].sort((a,b) => Math.abs(a.strike-spot) - Math.abs(b.strike-spot));
+  const near    = sorted.slice(0, 16).sort((a,b) => b.strike - a.strike);
+
+  const maxCeOI   = Math.max(...near.map(r => r.ce_oi||0),   1);
+  const maxPeOI   = Math.max(...near.map(r => r.pe_oi||0),   1);
+  const maxAbsChg = Math.max(...near.map(r => Math.max(Math.abs(r.ce_chg_oi||0), Math.abs(r.pe_chg_oi||0))), 1);
+  const maxOI     = Math.max(maxCeOI, maxPeOI, 1);
+
+  // Summary counts
+  let ceWriteCount=0, ceUnwindCount=0, peWriteCount=0, peUnwindCount=0, scCount=0;
+  near.forEach(r => {
+    const a = analyzeStrike(r, spot, maxCeOI, maxPeOI, maxAbsChg);
+    a.badges.forEach(b => {
+      if (b.cls === 'badge-ce-writing')  ceWriteCount++;
+      if (b.cls === 'badge-ce-unwind')   ceUnwindCount++;
+      if (b.cls === 'badge-pe-writing')  peWriteCount++;
+      if (b.cls === 'badge-pe-unwind')   peUnwindCount++;
+      if (b.cls === 'badge-short-cov')   scCount++;
+    });
+  });
+
+  // Overall OI pressure
+  const totalCeChg  = near.reduce((a,r) => a+(r.ce_chg_oi||0), 0);
+  const totalPeChg  = near.reduce((a,r) => a+(r.pe_chg_oi||0), 0);
+  const netBias     = totalPeChg - totalCeChg;
+  const netBiasAbs  = Math.abs(totalPeChg) + Math.abs(totalCeChg) || 1;
+  const bullBarPct  = clamp(((totalPeChg > 0 ? totalPeChg : 0) / netBiasAbs) * 100, 0, 100);
+  const bearBarPct  = clamp(((totalCeChg > 0 ? totalCeChg : 0) / netBiasAbs) * 100, 0, 100);
+
+  // Build rows HTML
+  const rowsHtml = near.map(row => {
+    const { badges, signals, rowCls, isAtm } = analyzeStrike(row, spot, maxCeOI, maxPeOI, maxAbsChg);
+
+    const cePct    = clamp((row.ce_oi / maxOI) * 44, 0, 44);
+    const pePct    = clamp((row.pe_oi / maxOI) * 44, 0, 44);
+
+    // CE bar state
+    const ceState  = (row.ce_chg_oi||0) > maxAbsChg*0.05 ? 'writing'
+                   : (row.ce_chg_oi||0) < -maxAbsChg*0.05 ? 'unwinding' : 'neutral';
+    const peState  = (row.pe_chg_oi||0) > maxAbsChg*0.05 ? 'writing'
+                   : (row.pe_chg_oi||0) < -maxAbsChg*0.05 ? 'unwinding' : 'neutral';
+
+    const ceChgColor = (row.ce_chg_oi||0) >= 0 ? 'var(--neon-green)' : 'var(--neon-orange)';
+    const peChgColor = (row.pe_chg_oi||0) >= 0 ? 'var(--neon-red)'   : 'var(--neon-purple)';
+
+    // Badge HTML
+    const badgeHtml = badges.map(b =>
+      `<span class="oi-badge ${b.cls}">${b.label}</span>`
+    ).join('');
+
+    // Tooltip HTML
+    const tipRows = [
+      { k:'Strike', v: Math.round(row.strike), cls:'info' },
+      { k:'CE OI',  v: fmt(row.ce_oi) + (row.ce_chg_oi ? ` (${row.ce_chg_oi>0?'+':''}${fmt(row.ce_chg_oi)})` : ''), cls: (row.ce_chg_oi||0)>=0?'bull':'bear' },
+      { k:'PE OI',  v: fmt(row.pe_oi) + (row.pe_chg_oi ? ` (${row.pe_chg_oi>0?'+':''}${fmt(row.pe_chg_oi)})` : ''), cls: (row.pe_chg_oi||0)>=0?'bear':'bull' },
+      { k:'CE Vol', v: fmt(row.ce_vol), cls:'' },
+      { k:'PE Vol', v: fmt(row.pe_vol), cls:'' },
+      { k:'CE IV',  v: (row.ce_iv||0).toFixed(1)+'%', cls:'' },
+      { k:'PE IV',  v: (row.pe_iv||0).toFixed(1)+'%', cls:'' },
+      { k:'PCR',    v: (row.pcr||0).toFixed(2), cls:(row.pcr||0)>1?'bull':'bear' },
+      ...signals
+    ];
+
+    const tipHtml = `<div class="oi-tooltip">
+      <div class="oi-tooltip-title">Strike ${Math.round(row.strike)} Analysis</div>
+      ${tipRows.map(r=>`<div class="oi-tooltip-row"><span class="oi-tooltip-key">${r.k}</span><span class="oi-tooltip-val ${r.cls||''}">${r.v}</span></div>`).join('')}
+      ${signals.length ? `<div class="oi-tooltip-signal">⚡ ${signals[0].v}</div>` : ''}
+    </div>`;
+
+    return `<div class="oi-strike-row ${rowCls}">
+      <!-- CE side -->
+      <div class="oi-ce-side">
+        <div class="oi-side-oi" style="color:var(--neon-green)">${fmt(row.ce_oi)}</div>
+        <div class="oi-side-chg" style="color:${ceChgColor}">${(row.ce_chg_oi||0)>=0?'+':''}${fmt(row.ce_chg_oi||0)}</div>
+        <div class="oi-side-vol">V:${fmt(row.ce_vol)}</div>
+      </div>
+      <!-- CE→PE bar -->
+      <div class="oi-bar-col">
+        <div class="oi-bar-track">
+          <div class="oi-bar-fill-ce ${ceState}" style="width:${cePct}%"></div>
+          <div class="oi-bar-center-line"></div>
+          <div class="oi-bar-fill-pe ${peState}" style="width:${pePct}%"></div>
+        </div>
+      </div>
+      <!-- Strike + badges -->
+      <div class="oi-strike-cell">
+        <div class="oi-strike-num">${Math.round(row.strike)}${isAtm?' ★':''}</div>
+        <div class="oi-badges">${badgeHtml}</div>
+        ${tipHtml}
+      </div>
+      <!-- PE→CE bar (mirror) -->
+      <div class="oi-bar-col">
+        <div class="oi-bar-track">
+          <div class="oi-bar-fill-pe ${peState}" style="width:${pePct}%"></div>
+          <div class="oi-bar-center-line"></div>
+          <div class="oi-bar-fill-ce ${ceState}" style="width:${cePct}%"></div>
+        </div>
+      </div>
+      <!-- PE side -->
+      <div class="oi-pe-side">
+        <div class="oi-side-oi" style="color:var(--neon-red)">${fmt(row.pe_oi)}</div>
+        <div class="oi-side-chg" style="color:${peChgColor}">${(row.pe_chg_oi||0)>=0?'+':''}${fmt(row.pe_chg_oi||0)}</div>
+        <div class="oi-side-vol">V:${fmt(row.pe_vol)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Summary header
+  const summaryHtml = `<div class="oi-map-header">
+    <div class="oi-map-legend" style="flex-wrap:wrap;gap:6px">
+      <span class="oi-legend-item"><span class="oi-legend-dot" style="background:var(--neon-green)"></span>CE Writing</span>
+      <span class="oi-legend-item"><span class="oi-legend-dot" style="background:var(--neon-orange)"></span>CE Unwind</span>
+      <span class="oi-legend-item"><span class="oi-legend-dot" style="background:var(--neon-red)"></span>PE Writing</span>
+      <span class="oi-legend-item"><span class="oi-legend-dot" style="background:var(--neon-purple)"></span>PE Unwind</span>
+      <span class="oi-legend-item"><span class="oi-legend-dot" style="background:var(--neon-teal,#00d4c8)"></span>Short Cov</span>
+    </div>
+    <div class="oi-map-summary">
+      <span class="oi-sum-item oi-sum-bull">CE-Write:<span>${ceWriteCount}</span></span>
+      <span class="oi-sum-item oi-sum-bear">PE-Write:<span>${peWriteCount}</span></span>
+      <span class="oi-sum-item oi-sum-neut">Unwinds:<span>${ceUnwindCount+peUnwindCount}</span></span>
+      <span class="oi-sum-item" style="color:var(--neon-blue)">Sh-Cov:<span style="color:var(--neon-blue)">${scCount}</span></span>
+    </div>
+  </div>
+  <div class="oi-table-wrap">
+    <div style="display:grid;grid-template-columns:62px 1fr 80px 1fr 62px;padding:4px 0;background:var(--bg-panel);border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--neon-green);text-align:center;padding:2px 4px;letter-spacing:1px">CE OI/ΔOI</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--neon-green);text-align:center;letter-spacing:1px">◀ CE PRESSURE</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-dim);text-align:center;letter-spacing:1px">STRIKE</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--neon-red);text-align:center;letter-spacing:1px">PE PRESSURE ▶</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--neon-red);text-align:center;padding:2px 4px;letter-spacing:1px">PE OI/ΔOI</div>
+    </div>
+    ${rowsHtml}
+  </div>
+  <div class="oi-net-bar-wrap">
+    <span style="color:var(--neon-green);min-width:60px">NET PE WR</span>
+    <div class="oi-net-bar-track">
+      <div class="oi-net-bar-fill" style="width:${bullBarPct}%;background:${netBias>0?'var(--neon-green)':'var(--neon-red)'}"></div>
+    </div>
+    <span style="color:var(--neon-red);min-width:60px;text-align:right">NET CE WR</span>
+    <span style="color:${netBias>0?'var(--neon-green)':'var(--neon-red)'};margin-left:8px;font-weight:700">
+      ${netBias>0?'BULL BIAS':'BEAR BIAS'}
+    </span>
+  </div>`;
+
+  el.innerHTML = summaryHtml;
+}
+
+// ───────────────────────────────────────────────
+// OPTION CHAIN TABLE
+// ───────────────────────────────────────────────
+function renderChain(chain, spot, expiry) {
+  const el = document.getElementById('chain-body');
+  if (!chain.length) {
+    el.innerHTML = '<div class="loading-row" style="color:var(--neon-yellow)">No chain data — market may be closed</div>';
+    return;
+  }
+
+  const maxCeOI = Math.max(...chain.map(r=>r.ce_oi||0), 1);
+  const maxPeOI = Math.max(...chain.map(r=>r.pe_oi||0), 1);
+
+  let html = expiry ? `<div class="chain-group-header">📅 Expiry: ${expiry} &nbsp;|&nbsp; ${chain.length} strikes</div>` : '';
+
+  chain.forEach(row => {
+    const isAtm = spot && Math.abs(row.strike - spot) < 60;
+    const cePct = clamp((row.ce_oi/maxCeOI)*50, 1, 50);
+    const pePct = clamp((row.pe_oi/maxPeOI)*50, 1, 50);
+
+    let rowClass = '';
+    if (isAtm) rowClass = 'atm';
+    else if ((row.pcr||0) > 1.3) rowClass = 'bullish-zone';
+    else if ((row.pcr||0) < 0.7) rowClass = 'bearish-zone';
+    else if (row.ce_chg_oi < 0 && row.pe_chg_oi < 0) rowClass = 'trap-zone';
+
+    const ceChgCls = (row.ce_chg_oi||0) >= 0 ? 'chg-pos' : 'chg-neg';
+    const peChgCls = (row.pe_chg_oi||0) >= 0 ? 'chg-pos' : 'chg-neg';
+    const pcrColor = (row.pcr||0) > 1.2 ? 'var(--neon-green)' : ((row.pcr||0) < 0.8 ? 'var(--neon-red)' : 'var(--text-dim)');
+
+    html += `<div class="chain-row ${rowClass}" title="CE IV: ${(row.ce_iv||0).toFixed(1)}% | PE IV: ${(row.pe_iv||0).toFixed(1)}%">
+      <div class="chain-cell ce-ltp">${fmtP(row.ce_ltp)}</div>
+      <div class="chain-cell oi-bar-wrap"><div class="oi-bg-ce" style="width:${cePct}%"></div><span style="position:relative;z-index:1">${fmt(row.ce_oi)}</span></div>
+      <div class="chain-cell ${ceChgCls}">${fmt(row.ce_chg_oi)}</div>
+      <div class="chain-cell">${fmt(row.ce_vol)}</div>
+      <div class="chain-cell" style="color:var(--neon-green)">${(row.ce_delta||0).toFixed(2)}</div>
+      <div class="chain-cell" style="color:var(--neon-purple);font-size:9px">${(row.ce_gamma||0).toFixed(4)}</div>
+      <div class="chain-cell" style="font-size:9px">${(row.ce_iv||0).toFixed(1)}%</div>
+      <div class="chain-cell strike-cell">${Math.round(row.strike)}</div>
+      <div class="chain-cell" style="font-size:9px">${(row.pe_iv||0).toFixed(1)}%</div>
+      <div class="chain-cell" style="color:var(--neon-purple);font-size:9px">${Math.abs(row.pe_gamma||0).toFixed(4)}</div>
+      <div class="chain-cell" style="color:var(--neon-red)">${(row.pe_delta||0).toFixed(2)}</div>
+      <div class="chain-cell">${fmt(row.pe_vol)}</div>
+      <div class="chain-cell ${peChgCls}">${fmt(row.pe_chg_oi)}</div>
+      <div class="chain-cell oi-bar-wrap"><div class="oi-bg-pe" style="width:${pePct}%"></div><span style="position:relative;z-index:1">${fmt(row.pe_oi)}</span></div>
+      <div class="chain-cell pe-ltp">${fmtP(row.pe_ltp)}</div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ───────────────────────────────────────────────
+// MOMENTUM SCANNER
+// ───────────────────────────────────────────────
+function renderMomentum(chain, spot) {
+  const el = document.getElementById('momentum-block');
+  if (!chain.length) { el.innerHTML='<div class="empty-msg">No data</div>'; return; }
+
+  const totalCeOI  = chain.reduce((a,r)=>a+(r.ce_oi||0),  0);
+  const totalPeOI  = chain.reduce((a,r)=>a+(r.pe_oi||0),  0);
+  const totalCeVol = chain.reduce((a,r)=>a+(r.ce_vol||0), 0);
+  const totalPeVol = chain.reduce((a,r)=>a+(r.pe_vol||0), 0);
+  const pcr        = totalCeOI > 0 ? totalPeOI/totalCeOI : 1;
+  const volPcr     = totalCeVol > 0 ? totalPeVol/totalCeVol : 1;
+  const maxOI      = Math.max(totalCeOI, totalPeOI, 1);
+  const maxVol     = Math.max(totalCeVol, totalPeVol, 1);
+
+  const rows = [
+    {label:'CE OI',   val:fmt(totalCeOI),  pct:totalCeOI/maxOI*100,  color:'var(--neon-green)'},
+    {label:'PE OI',   val:fmt(totalPeOI),  pct:totalPeOI/maxOI*100,  color:'var(--neon-red)'},
+    {label:'CE Vol',  val:fmt(totalCeVol), pct:totalCeVol/maxVol*100, color:'var(--neon-green)'},
+    {label:'PE Vol',  val:fmt(totalPeVol), pct:totalPeVol/maxVol*100, color:'var(--neon-red)'},
+    {label:'PCR',     val:pcr.toFixed(2),  pct:clamp(pcr/2*100,5,95), color:pcr>1?'var(--neon-green)':'var(--neon-red)'},
+    {label:'Vol PCR', val:volPcr.toFixed(2),pct:clamp(volPcr/2*100,5,95),color:'var(--neon-yellow)'},
+  ];
+
+  el.innerHTML = rows.map(r => `
+    <div class="momentum-row">
+      <span class="mom-label">${r.label}</span>
+      <div class="mom-bar"><div class="mom-fill" style="width:${r.pct}%;background:${r.color}"></div></div>
+      <span class="mom-val" style="color:${r.color}">${r.val}</span>
+    </div>`).join('');
+}
+
+// ───────────────────────────────────────────────
+// NOTIFICATIONS
+// ───────────────────────────────────────────────
+function showNotif(msg, level='info') {
+  const c  = document.getElementById('notif-container');
+  const el = document.createElement('div');
+  el.className = `notif ${level}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+/* ═══════════════════════════════════════════════
+   AI MARKET ASSISTANT — PURE RULE-BASED ENGINE
+   No API key · No external dependencies
+   Reads live data from the page state
+═══════════════════════════════════════════════ */
+
+let aiOpen   = false;
+let aiBusy   = false;
+let aiData   = null;   // mirror of latest renderAll() data
+
+// ── Toggle panel ──
+function aiToggle() {
+  aiOpen = !aiOpen;
+  document.getElementById('ai-panel').classList.toggle('open', aiOpen);
+  if (aiOpen) setTimeout(() => document.getElementById('ai-input').focus(), 240);
+}
+
+// ── Quick buttons ──
+function aiAsk(topic) {
+  document.getElementById('ai-input').value = topic;
+  aiSend();
+}
+
+// ── Send handler ──
+function aiSend() {
+  const inp = document.getElementById('ai-input');
+  const raw = inp.value.trim();
+  if (!raw || aiBusy) return;
+  inp.value = '';
+  aiAddMsg('user', raw);
+  aiBusy = true;
+  document.getElementById('ai-send-btn').disabled = true;
+  const typEl = aiShowTyping();
+  // Simulate brief "thinking" delay for realism
+  setTimeout(() => {
+    typEl.remove();
+    const reply = aiEngine(raw.toLowerCase());
+    aiAddMsg('bot', reply);
+    aiBusy = false;
+    document.getElementById('ai-send-btn').disabled = false;
+    document.getElementById('ai-input').focus();
+  }, 600 + Math.random() * 500);
+}
+
+// ── Message renderer ──
+function aiAddMsg(role, text) {
+  const c   = document.getElementById('ai-msgs');
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const d   = document.createElement('div');
+  d.className = `ai-msg ${role}`;
+  d.innerHTML = `<div class="ai-bubble">${esc(text).replace(/\n/g,'<br>')}</div>
+    <div class="ai-meta">${role==='user'?'YOU':'OPTIONDESK AI'} · ${now}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+function aiShowTyping() {
+  const c = document.getElementById('ai-msgs');
+  const d = document.createElement('div');
+  d.className = 'ai-msg bot ai-typing-wrap';
+  d.innerHTML = `<div class="ai-typing"><div class="ai-dots"><span></span><span></span><span></span></div>Analysing live data...</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+  return d;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════════
+   RULE-BASED AI ENGINE
+   Interprets live option chain data to produce
+   human-readable institutional-grade analysis
+═══════════════════════════════════════════════ */
+function aiEngine(q) {
+  if (!aiData || !aiData.chain || !aiData.chain.length) {
+    return '⚠️ No live market data available yet.\n\nPlease wait for the option chain to load after logging in with your Upstox token.';
+  }
+
+  const d   = aiData;
+  const ch  = d.chain || [];
+  const sp  = d.spot  || 0;
+  const vix = d.vix   || 0;
+  const sr  = d.support_resistance || {};
+  const sent= d.sentiment || {};
+  const gr  = d.greeks_summary || {};
+  const tr  = d.trade_suggestions || [];
+  const al  = d.alerts || [];
+
+  // ── Pre-compute key numbers ──
+  const totalCeOI  = ch.reduce((a,r)=>a+(r.ce_oi||0),0);
+  const totalPeOI  = ch.reduce((a,r)=>a+(r.pe_oi||0),0);
+  const totalCeVol = ch.reduce((a,r)=>a+(r.ce_vol||0),0);
+  const totalPeVol = ch.reduce((a,r)=>a+(r.pe_vol||0),0);
+  const totalCeChg = ch.reduce((a,r)=>a+(r.ce_chg_oi||0),0);
+  const totalPeChg = ch.reduce((a,r)=>a+(r.pe_chg_oi||0),0);
+  const pcr        = totalCeOI>0 ? totalPeOI/totalCeOI : 1;
+  const volPcr     = totalCeVol>0 ? totalPeVol/totalCeVol : 1;
+
+  // ATM row
+  const atm = ch.reduce((best,r)=>Math.abs(r.strike-sp)<Math.abs(best.strike-sp)?r:best, ch[0]);
+  const atmStrike = atm ? Math.round(atm.strike) : '—';
+
+  // Top OI walls
+  const topCe = [...ch].sort((a,b)=>(b.ce_oi||0)-(a.ce_oi||0)).slice(0,5);
+  const topPe = [...ch].sort((a,b)=>(b.pe_oi||0)-(a.pe_oi||0)).slice(0,5);
+
+  // Max pain (strike where total OI pain is minimum for buyers)
+  const strikes = [...new Set(ch.map(r=>r.strike))].sort((a,b)=>a-b);
+  let maxPain = sp;
+  let minPain = Infinity;
+  strikes.forEach(s=>{
+    const pain = ch.reduce((sum,r)=>{
+      const ceLoss = r.strike>s ? 0 : (s-r.strike)*(r.ce_oi||0);
+      const peLoss = r.strike<s ? 0 : (r.strike-s)*(r.pe_oi||0);
+      return sum+ceLoss+peLoss;
+    },0);
+    if(pain<minPain){minPain=pain; maxPain=s;}
+  });
+
+  // Gamma squeeze detection
+  const highGammaStrikes = ch.filter(r=>(r.ce_gamma||0)>(gr.max_gamma||0)*0.7).map(r=>Math.round(r.strike));
+
+  // CE/PE writing vs unwinding counts
+  const ceWriting  = ch.filter(r=>(r.ce_chg_oi||0)>  (totalCeOI/ch.length)*0.1).length;
+  const peWriting  = ch.filter(r=>(r.pe_chg_oi||0)>  (totalPeOI/ch.length)*0.1).length;
+  const ceUnwind   = ch.filter(r=>(r.ce_chg_oi||0)< -(totalCeOI/ch.length)*0.1).length;
+  const peUnwind   = ch.filter(r=>(r.pe_chg_oi||0)< -(totalPeOI/ch.length)*0.1).length;
+
+  // Resistance / support zones
+  const resZones = sr.resistance || [];
+  const supZones = sr.support    || [];
+  const topRes   = resZones[0];
+  const topSup   = supZones[0];
+
+  // Bias label helpers
+  const biasLabel = sent.label || (pcr>1.2?'BULLISH':pcr<0.85?'BEARISH':'NEUTRAL');
+  const bull = biasLabel==='BULLISH';
+  const bear = biasLabel==='BEARISH';
+
+  // ── Classify the question ──
+  const is = (kws) => kws.some(k=>q.includes(k));
+
+  // ─────────────────────────────────────
+  // MARKET BIAS
+  // ─────────────────────────────────────
+  if (is(['bias','direction','bullish','bearish','neutral','market view','market sentiment','trend','overall'])) {
+    const pcrTxt = pcr>1.4?'Strongly bullish (heavy PE writing)':pcr>1.1?'Mildly bullish':pcr<0.7?'Strongly bearish (heavy CE writing)':pcr<0.9?'Mildly bearish':'Neutral';
+    const vixTxt = vix<14?'Low — option sellers favoured':vix<18?'Moderate — balanced':vix<22?'Elevated — volatility expanding':'HIGH FEAR — extreme caution';
+    const oiTxt  = totalPeChg>0&&totalCeChg<=0?'PE building + CE stable → Bullish OI structure':
+                   totalCeChg>0&&totalPeChg<=0?'CE building + PE stable → Bearish OI structure':
+                   totalPeChg>0&&totalCeChg>0?'Both sides building — indecision/strangle':
+                   'Both sides unwinding — trend exhaustion possible';
+    const distFromMP = sp-maxPain;
+    const mpNote = Math.abs(distFromMP)<50?`Max Pain at ${Math.round(maxPain)} — spot very close, pinning risk today`:
+                   distFromMP>0?`Spot ${Math.round(distFromMP)} pts ABOVE Max Pain (${Math.round(maxPain)}) — bearish gravity possible`:
+                   `Spot ${Math.round(Math.abs(distFromMP))} pts BELOW Max Pain (${Math.round(maxPain)}) — bullish pull possible`;
+
+    return `📊 MARKET BIAS ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike} | VIX: ${vix}
+
+OVERALL BIAS: ${bull?'✅ BULLISH':bear?'❌ BEARISH':'⚖️ NEUTRAL'}
+Score: Bull ${sent.bullish||0}% / Bear ${sent.bearish||0}% / Neutral ${sent.neutral||0}%
+
+PCR SIGNAL (${pcr.toFixed(2)}): ${pcrTxt}
+Vol PCR (${volPcr.toFixed(2)}): ${volPcr>1.1?'Buyers active on PE side':'Buyers active on CE side'}
+
+OI STRUCTURE: ${oiTxt}
+CE Writing: ${ceWriting} strikes | PE Writing: ${peWriting} strikes
+CE Unwinding: ${ceUnwind} strikes | PE Unwinding: ${peUnwind} strikes
+
+VIX (${vix}): ${vixTxt}
+
+MAX PAIN: ${Math.round(maxPain)}
+${mpNote}
+
+${topRes?`🎯 Nearest Resistance: ${Math.round(topRes.strike)} [${topRes.strength.toUpperCase()}] OI: ${fmt(topRes.oi)}`:''}
+${topSup?`🛡 Nearest Support: ${Math.round(topSup.strike)} [${topSup.strength.toUpperCase()}] OI: ${fmt(topSup.oi)}`:''}
+
+CONCLUSION: ${bull?`Bulls in control. PE writers defending below. Look for longs near support ${topSup?Math.round(topSup.strike):'—'}.`:bear?`Bears in control. CE writers capping above. Look for shorts near resistance ${topRes?Math.round(topRes.strike):'—'}.`:`Market undecided. Wait for PCR to move decisively above 1.2 (bull) or below 0.85 (bear) before taking directional trades.`}`;
+  }
+
+  // ─────────────────────────────────────
+  // SUPPORT / RESISTANCE
+  // ─────────────────────────────────────
+  if (is(['support','resistance','s/r','sr zone','key level','zone','wall','level'])) {
+    const resLines = resZones.slice(0,5).map((z,i)=>{
+      const status = z.weakening?'⚠️ WEAKENING':z.strengthening?'🔴 BUILDING STRONG':'🔴 ACTIVE';
+      return `  ${i+1}. ${Math.round(z.strike)} CE — ${z.strength.toUpperCase()} | OI: ${fmt(z.oi)} | ΔOI: ${fmt(z.chg_oi)} | ${status}`;
+    }).join('\n') || '  No resistance zones detected';
+
+    const supLines = supZones.slice(0,5).map((z,i)=>{
+      const status = z.weakening?'⚠️ WEAKENING':z.strengthening?'🟢 ABSORBING STRONGLY':'🟢 ACTIVE';
+      return `  ${i+1}. ${Math.round(z.strike)} PE — ${z.strength.toUpperCase()} | OI: ${fmt(z.oi)} | ΔOI: ${fmt(z.chg_oi)} | ${status}`;
+    }).join('\n') || '  No support zones detected';
+
+    const topCeStr = topCe.slice(0,3).map(r=>`${Math.round(r.strike)} (OI:${fmt(r.ce_oi)})`).join(' → ');
+    const topPeStr = topPe.slice(0,3).map(r=>`${Math.round(r.strike)} (OI:${fmt(r.pe_oi)})`).join(' → ');
+
+    // Breakout/breakdown probability
+    const nearRes = resZones.find(z=>z.strike>sp&&z.strike-sp<150);
+    const nearSup = supZones.find(z=>z.strike<sp&&sp-z.strike<150);
+    let boProbTxt = '';
+    if(nearRes){
+      const boProb = nearRes.weakening?'HIGH (resistance weakening — breakout likely)':nearRes.strengthening?'LOW (resistance building strongly — rejection likely)':'MODERATE';
+      boProbTxt = `\nBreakout above ${Math.round(nearRes.strike)}: ${boProb}`;
+    }
+    if(nearSup){
+      const bdProb = nearSup.weakening?'HIGH (support breaking down)':nearSup.strengthening?'LOW (support strongly held)':'MODERATE';
+      boProbTxt += `\nBreakdown below ${Math.round(nearSup.strike)}: ${bdProb}`;
+    }
+
+    return `🎯 SUPPORT & RESISTANCE ZONES — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike}
+
+🔴 RESISTANCE ZONES (CE OI Walls):
+${resLines}
+
+🟢 SUPPORT ZONES (PE OI Walls):
+${supLines}
+
+MAX PAIN LEVEL: ${Math.round(maxPain)}
+(Expiry gravity — spot tends to drift toward max pain)
+${boProbTxt}
+
+TOP CE OI (Resistance): ${topCeStr}
+TOP PE OI (Support):    ${topPeStr}
+
+INTERPRETATION:
+${resZones[0]&&resZones[0].strengthening?`⚠️ ${Math.round(resZones[0].strike)} resistance is BUILDING — fresh CE writing detected. Avoid longs above without confirmation.`:''}
+${supZones[0]&&supZones[0].strengthening?`✅ ${Math.round(supZones[0].strike)} support is STRONG — heavy PE writing defending this zone.`:''}
+${resZones[0]&&resZones[0].weakening?`✅ ${Math.round(resZones[0].strike)} resistance WEAKENING — CE writers covering, breakout possible.`:''}
+${supZones[0]&&supZones[0].weakening?`❌ ${Math.round(supZones[0].strike)} support BREAKING — PE writers exiting, breakdown risk.`:''}`;
+  }
+
+  // ─────────────────────────────────────
+  // TRADE SETUP
+  // ─────────────────────────────────────
+  if (is(['trade','buy','sell','entry','setup','call','put','scalp','momentum','breakout','reversal','position'])) {
+    if (tr.length) {
+      const tLines = tr.slice(0,3).map((t,i)=>{
+        const reasons = (t.reasons||[]).slice(0,3).map(r=>`    • ${r}`).join('\n');
+        return `━━ TRADE ${i+1}: ${t.type} ━━
+  Entry:      ${t.entry}
+  Stop Loss:  ${t.sl}
+  Target:     ${t.target}
+  Confidence: ${t.confidence}%
+  Bias:       ${t.bias_score||'—'}
+  Max Pain:   ${t.max_pain||'—'}
+  Reasons:
+${reasons}`;
+      }).join('\n\n');
+
+      // Additional context
+      const bullish = bull;
+      const extra = bullish
+        ? `\n✅ Market bias BULLISH — favour CALL trades. Buy dips near ${topSup?Math.round(topSup.strike):'support'}.`
+        : bear
+        ? `\n❌ Market bias BEARISH — favour PUT trades. Sell rallies near ${topRes?Math.round(topRes.strike):'resistance'}.`
+        : `\n⚖️ Market NEUTRAL — prefer range trades or wait for breakout confirmation.`;
+
+      return `💹 TRADE SUGGESTIONS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | PCR: ${pcr.toFixed(2)} | VIX: ${vix}
+
+${tLines}
+${extra}
+
+⚠️ RISK MANAGEMENT:
+  • Never risk more than 1-2% capital per trade
+  • If VIX > 20, reduce position size by 50%
+  • Book partial profits at Target 1, trail SL to entry`;
+    } else {
+      // Generate a manual setup from raw data
+      const direction = bull?'BULLISH':bear?'BEARISH':'NEUTRAL';
+      const entry = bull && topSup ? Math.round(topSup.strike) : bear && topRes ? Math.round(topRes.strike) : atmStrike;
+      return `💹 MANUAL TRADE ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Direction: ${direction}
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike}
+
+${bull?`✅ BUY CALL SETUP
+  Strike: ATM ${atmStrike} CE or next OTM
+  Entry Zone: On dip toward ${topSup?Math.round(topSup.strike):Math.round(sp-50)}
+  SL: Close below ${topSup?Math.round(topSup.strike-30):Math.round(sp-80)}
+  Target 1: ${Math.round(sp+50)} | Target 2: ${topRes?Math.round(topRes.strike-10):Math.round(sp+100)}
+  Confidence: ${Math.min(80,50+(sent.bullish||0)/3)}%`:
+bear?`❌ BUY PUT SETUP
+  Strike: ATM ${atmStrike} PE or next OTM
+  Entry Zone: On bounce toward ${topRes?Math.round(topRes.strike):Math.round(sp+50)}
+  SL: Close above ${topRes?Math.round(topRes.strike+30):Math.round(sp+80)}
+  Target 1: ${Math.round(sp-50)} | Target 2: ${topSup?Math.round(topSup.strike+10):Math.round(sp-100)}
+  Confidence: ${Math.min(80,50+(sent.bearish||0)/3)}%`:
+`⚖️ RANGE TRADE (market neutral)
+  Sell ${topRes?Math.round(topRes.strike):Math.round(sp+100)} CE + Sell ${topSup?Math.round(topSup.strike):Math.round(sp-100)} PE
+  Collect premium while market stays in range
+  SL: Spot breaks either strike decisively`}
+
+PCR: ${pcr.toFixed(2)} | VIX: ${vix} | Max Pain: ${Math.round(maxPain)}`;
+    }
+  }
+
+  // ─────────────────────────────────────
+  // OI ANALYSIS
+  // ─────────────────────────────────────
+  if (is(['oi','open interest','oi analysis','oi shift','change in oi','writing','unwinding','oi change'])) {
+    const topCeLines = topCe.slice(0,5).map(r=>{
+      const act = (r.ce_chg_oi||0)>0?'📝 Writing':(r.ce_chg_oi||0)<0?'📤 Unwinding':'Neutral';
+      return `  ${Math.round(r.strike)} CE | OI: ${fmt(r.ce_oi)} | ΔOI: ${(r.ce_chg_oi||0)>=0?'+':''}${fmt(r.ce_chg_oi||0)} | ${act}`;
+    }).join('\n');
+
+    const topPeLines = topPe.slice(0,5).map(r=>{
+      const act = (r.pe_chg_oi||0)>0?'📝 Writing':(r.pe_chg_oi||0)<0?'📤 Unwinding':'Neutral';
+      return `  ${Math.round(r.strike)} PE | OI: ${fmt(r.pe_oi)} | ΔOI: ${(r.pe_chg_oi||0)>=0?'+':''}${fmt(r.pe_chg_oi||0)} | ${act}`;
+    }).join('\n');
+
+    const oiBias = totalPeChg>0&&totalCeChg<=0?'✅ BULLISH — PE writers adding, CE stable':
+                   totalCeChg>0&&totalPeChg<=0?'❌ BEARISH — CE writers adding, PE stable':
+                   totalPeChg>0&&totalCeChg>0?'⚖️ MIXED — both sides adding (straddle/strangle writing)':
+                   '⚠️ BOTH UNWINDING — potential trend reversal or expiry unwinding';
+
+    const ceWrPct = totalCeOI>0?Math.round((totalCeChg/totalCeOI)*100):0;
+    const peWrPct = totalPeOI>0?Math.round((totalPeChg/totalPeOI)*100):0;
+
+    return `🔍 OI ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | PCR: ${pcr.toFixed(2)} | Vol PCR: ${volPcr.toFixed(2)}
+
+TOTAL CE OI: ${fmt(totalCeOI)} | ΔOI: ${totalCeChg>=0?'+':''}${fmt(totalCeChg)} (${ceWrPct>=0?'+':''}${ceWrPct}%)
+TOTAL PE OI: ${fmt(totalPeOI)} | ΔOI: ${totalPeChg>=0?'+':''}${fmt(totalPeChg)} (${peWrPct>=0?'+':''}${peWrPct}%)
+
+CE VOLUME: ${fmt(totalCeVol)} | PE VOLUME: ${fmt(totalPeVol)}
+
+OI BIAS: ${oiBias}
+CE Writing: ${ceWriting} strikes | PE Writing: ${peWriting} strikes
+CE Unwinding: ${ceUnwind} | PE Unwinding: ${peUnwind}
+
+TOP CE WALLS (Resistance):
+${topCeLines}
+
+TOP PE WALLS (Support):
+${topPeLines}
+
+INTERPRETATION:
+${pcr>1.3?'✅ PCR > 1.3 — PE writers dominant, supports upside bias. Bears NOT shorting aggressively.':
+  pcr<0.85?'❌ PCR < 0.85 — CE writers dominant, resistance strong. Bulls NOT buying aggressively.':
+  '⚖️ PCR near 1.0 — balanced writing. Market in equilibrium.'}
+${totalCeChg<0&&totalPeChg>0?'\n✅ CE unwinding + PE writing = SHORT COVERING + fresh bullish bets. Bullish signal.':''}
+${totalPeChg<0&&totalCeChg>0?'\n❌ PE unwinding + CE writing = LONG UNWINDING + fresh bearish bets. Bearish signal.':''}`;
+  }
+
+  // ─────────────────────────────────────
+  // TRAP DETECTION
+  // ─────────────────────────────────────
+  if (is(['trap','fake','false','bull trap','bear trap','fake breakout','fake breakdown','choch','bos','change of character','break of structure'])) {
+    // Bull trap: market moved up but CE unwinding (not fresh buying), PE also unwinding
+    const bullTrapScore =
+      (totalCeChg < 0 ? 2 : 0) +       // CE unwinding at highs
+      (totalPeChg < 0 ? 1 : 0) +       // PE also unwinding
+      (pcr < 0.9 ? 1 : 0) +            // low PCR
+      (topRes && !topRes.weakening ? 1 : 0); // resistance still strong
+
+    // Bear trap: market fell but PE unwinding (not fresh selling), CE also unwinding
+    const bearTrapScore =
+      (totalPeChg < 0 ? 2 : 0) +
+      (totalCeChg < 0 ? 1 : 0) +
+      (pcr > 1.3 ? 1 : 0) +
+      (topSup && !topSup.weakening ? 1 : 0);
+
+    const isBullTrap = bullTrapScore >= 3;
+    const isBearTrap = bearTrapScore >= 3;
+
+    // Gamma squeeze risk
+    const gammaSqueeze = highGammaStrikes.length > 2 && vix < 16;
+
+    // OI divergence (price moving but OI not supporting)
+    const oiDivergence = (bull && totalCeChg > totalPeChg) || (bear && totalPeChg > totalCeChg);
+
+    return `⚠️ TRAP & STRUCTURE ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike}
+
+${isBullTrap?`🚨 BULL TRAP RISK — HIGH (Score: ${bullTrapScore}/5)
+  • CE writers NOT covering despite rally
+  • PE also being unwound (longs exiting, not shorts covering)
+  • Resistance at ${topRes?Math.round(topRes.strike):'upper zone'} still firm
+  • ACTION: Avoid fresh longs here. Wait for genuine PE writing.`:`🟢 Bull Trap Risk: LOW (Score: ${bullTrapScore}/5)`}
+
+${isBearTrap?`🚨 BEAR TRAP RISK — HIGH (Score: ${bearTrapScore}/5)
+  • PE writers NOT adding despite fall
+  • CE also being unwound (shorts exiting, not longs covering)
+  • Support at ${topSup?Math.round(topSup.strike):'lower zone'} still firm
+  • ACTION: Avoid fresh shorts here. Wait for genuine CE writing.`:`🟢 Bear Trap Risk: LOW (Score: ${bearTrapScore}/5)`}
+
+GAMMA SQUEEZE RISK: ${gammaSqueeze?`⚠️ HIGH — Multiple strikes near ${highGammaStrikes.join(', ')} with high gamma. Low VIX amplifies snap moves.`:'🟢 LOW'}
+
+OI DIVERGENCE: ${oiDivergence?`⚠️ DETECTED — Price moving ${bull?'up':'down'} but OI structure ${bull?'bearish':'bullish'}. Possible ${bull?'distribution':'accumulation'}.`:'🟢 None detected — OI confirms price direction.'}
+
+BOS/CHOCH SIGNALS:
+${topRes&&topRes.weakening?`✅ BOS Bullish — ${Math.round(topRes.strike)} resistance weakening. If spot breaks above, strong bullish BOS confirmed.`:''}
+${topSup&&topSup.weakening?`❌ CHOCH Bearish — ${Math.round(topSup.strike)} support breaking. Change of character to bearish.`:''}
+${!topRes?.weakening&&!topSup?.weakening?'  Market structure intact. No BOS/CHOCH signals currently.':''}
+
+Max Pain: ${Math.round(maxPain)} ${Math.abs(sp-maxPain)<30?'⚠️ Spot pinned near max pain — watch for expiry-day manipulation':''}`;
+  }
+
+  // ─────────────────────────────────────
+  // VIX ANALYSIS
+  // ─────────────────────────────────────
+  if (is(['vix','volatility','fear','iv','implied volatility'])) {
+    const avgIV = ((gr.avg_ce_iv||0)+(gr.avg_pe_iv||0))/2;
+    const ivSkew = (gr.avg_pe_iv||0)-(gr.avg_ce_iv||0);
+
+    let vixInterpretation, vixStrategy, vixColor;
+    if (vix < 12) {
+      vixInterpretation = 'ULTRA LOW — Extreme complacency. Market priced for perfection.';
+      vixStrategy = '⚠️ Option selling highly profitable now (low premiums = low reward). Buy cheap OTM options for tail risk protection. Avoid SELLING — IV likely to spike soon.';
+    } else if (vix < 15) {
+      vixInterpretation = 'LOW — Calm markets. Option sellers favoured.';
+      vixStrategy = '✅ Good environment for theta strategies (short straddles, spreads). Directional buyers face premium drag.';
+    } else if (vix < 18) {
+      vixInterpretation = 'MODERATE — Balanced. Both buyers and sellers viable.';
+      vixStrategy = '✅ Ideal for directional trades. Buy ATM options for momentum. Good risk/reward on both sides.';
+    } else if (vix < 22) {
+      vixInterpretation = 'ELEVATED — Volatility expanding. Wider intraday ranges expected.';
+      vixStrategy = '⚠️ Reduce position size by 30%. Avoid naked short options. Prefer debit spreads over naked positions. Widen SL targets.';
+    } else {
+      vixInterpretation = 'HIGH FEAR — Panic/event-driven volatility.';
+      vixStrategy = '🚨 Extreme caution. Avoid short options — gamma risk extreme. If buying, prefer ITM options for less theta burn. Wait for VIX to peak and start falling before aggressive entry.';
+    }
+
+    return `🌡 VIX & VOLATILITY ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INDIA VIX: ${vix} — ${vixInterpretation}
+
+ATM CE IV: ${(gr.avg_ce_iv||0).toFixed(1)}%
+ATM PE IV: ${(gr.avg_pe_iv||0).toFixed(1)}%
+Avg IV: ${avgIV.toFixed(1)}%
+IV Skew (PE-CE): ${ivSkew>0?'+':''}${ivSkew.toFixed(1)}% ${ivSkew>2?'(Put skew — fear of downside)':ivSkew<-2?'(Call skew — chasing upside)':'(Balanced)'}
+
+Max Gamma Strike: ${gr.max_gamma_strike||'—'} (pinning risk near expiry)
+
+STRATEGY IMPLICATION:
+${vixStrategy}
+
+VIX CONTEXT FOR ${currentIndex}:
+${vix<15&&pcr>1.2?'✅ Low VIX + Bullish PCR = Strong bull environment. Option writers confident. Trend likely to continue.':
+  vix>18&&pcr<0.9?'❌ High VIX + Bearish PCR = Risk-off. Institutions hedging. Prefer cash or small positions.':
+  vix>18&&pcr>1.3?'⚠️ High VIX + Bullish PCR = Possible bottom forming. Smart money buying puts as hedge while going long.':
+  'Market in normal operating range. Follow PCR and OI signals for direction.'}`;
+  }
+
+  // ─────────────────────────────────────
+  // PCR SIGNAL
+  // ─────────────────────────────────────
+  if (is(['pcr','put call','put-call','pcr ratio','call ratio'])) {
+    const strikePcrs = ch.map(r=>({strike:r.strike, pcr:r.ce_oi>0?r.pe_oi/r.ce_oi:0}));
+    const highPcrStrikes = strikePcrs.filter(s=>s.pcr>1.5).sort((a,b)=>b.pcr-a.pcr).slice(0,3);
+    const lowPcrStrikes  = strikePcrs.filter(s=>s.pcr<0.5&&s.pcr>0).sort((a,b)=>a.pcr-b.pcr).slice(0,3);
+
+    return `📉 PCR ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike}
+
+OVERALL PCR:  ${pcr.toFixed(2)} ${pcr>1.4?'✅ STRONGLY BULLISH':pcr>1.1?'✅ MILDLY BULLISH':pcr<0.7?'❌ STRONGLY BEARISH':pcr<0.9?'❌ MILDLY BEARISH':'⚖️ NEUTRAL'}
+VOLUME PCR:   ${volPcr.toFixed(2)} ${volPcr>1.2?'✅ Buyers active on PE (bullish flow)':volPcr<0.8?'❌ Buyers active on CE (bearish flow)':'⚖️ Balanced volume'}
+
+Total PE OI: ${fmt(totalPeOI)} | Total CE OI: ${fmt(totalCeOI)}
+
+MOST BULLISH STRIKES (High PCR — heavy PE writing):
+${highPcrStrikes.length?highPcrStrikes.map(s=>`  ${Math.round(s.strike)} — PCR: ${s.pcr.toFixed(2)} (strong support zone)`).join('\n'):'  None in extreme zone'}
+
+MOST BEARISH STRIKES (Low PCR — heavy CE writing):
+${lowPcrStrikes.length?lowPcrStrikes.map(s=>`  ${Math.round(s.strike)} — PCR: ${s.pcr.toFixed(2)} (strong resistance zone)`).join('\n'):'  None in extreme zone'}
+
+PCR INTERPRETATION:
+${pcr>1.4?`✅ PCR ${pcr.toFixed(2)} is very high. Put writers (option sellers) are aggressively defending the downside. This is BULLISH — smart money is selling puts = they expect market to stay above key supports.\n\nBuy Calls or sell Puts near ${topSup?Math.round(topSup.strike):'support'}.`:
+  pcr<0.75?`❌ PCR ${pcr.toFixed(2)} is very low. Call writers are aggressively capping the upside. This is BEARISH — smart money expects market to stay below key resistances.\n\nBuy Puts or sell Calls near ${topRes?Math.round(topRes.strike):'resistance'}.`:
+  pcr>1&&pcr<=1.4?`✅ Mild bullish bias. More puts written than calls. Market has downside support but not aggressively bullish. Wait for PCR to move above 1.4 or below 0.85 for strong signal.`:
+  `⚖️ PCR near neutral. Market undecided. Watch for OI buildup in either direction for the next move.`}`;
+  }
+
+  // ─────────────────────────────────────
+  // INSTITUTIONAL ACTIVITY
+  // ─────────────────────────────────────
+  if (is(['institution','institutional','smart money','fii','dii','big player','operator','hedge'])) {
+    // Institutions tend to write options (short), show up in OI buildup without heavy volume
+    const instCeStrikes = ch.filter(r=>(r.ce_chg_oi||0)>0&&(r.ce_vol||0)/(r.ce_oi||1)<0.3).sort((a,b)=>(b.ce_chg_oi||0)-(a.ce_chg_oi||0)).slice(0,4);
+    const instPeStrikes = ch.filter(r=>(r.pe_chg_oi||0)>0&&(r.pe_vol||0)/(r.pe_oi||1)<0.3).sort((a,b)=>(b.pe_chg_oi||0)-(a.pe_chg_oi||0)).slice(0,4);
+
+    const instCeStr = instCeStrikes.map(r=>`  ${Math.round(r.strike)} CE — OI buildup: +${fmt(r.ce_chg_oi||0)} (low vol/OI ratio → institutional writing)`).join('\n') || '  None detected';
+    const instPeStr = instPeStrikes.map(r=>`  ${Math.round(r.strike)} PE — OI buildup: +${fmt(r.pe_chg_oi||0)} (low vol/OI ratio → institutional writing)`).join('\n') || '  None detected';
+
+    const instBias = instPeStrikes.length>instCeStrikes.length?'✅ Institutions more active on PE side → BULLISH lean (defending downside)':
+                     instCeStrikes.length>instPeStrikes.length?'❌ Institutions more active on CE side → BEARISH lean (capping upside)':
+                     '⚖️ Institutional activity balanced across both sides';
+
+    return `🏦 INSTITUTIONAL ACTIVITY — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike}
+
+DETECTION METHOD: OI buildup with LOW volume/OI ratio
+(Institutions build positions quietly — high OI, low relative volume)
+
+🔴 INSTITUTIONAL CE WRITING (Capping upside):
+${instCeStr}
+
+🟢 INSTITUTIONAL PE WRITING (Defending downside):
+${instPeStr}
+
+INSTITUTIONAL BIAS: ${instBias}
+
+${topRes&&topRes.strength==='hard'?`🏦 ${Math.round(topRes.strike)} is a HARD resistance — institutions writing heavily. Will require strong catalyst to break.`:''}
+${topSup&&topSup.strength==='hard'?`🏦 ${Math.round(topSup.strike)} is HARD support — institutions defending aggressively. Bounce likely on touch.`:''}
+
+GAMMA EXPOSURE:
+Max Gamma Strike: ${gr.max_gamma_strike||'—'} — Market makers delta-hedge heavily here.
+This strike acts as a magnet near expiry.
+
+KEY INSIGHT: ${pcr>1.3?
+  `Institutions writing PEs heavily → they expect market to STAY ABOVE ${topSup?Math.round(topSup.strike):'support'}. Follow smart money — be bullish until PCR drops below 1.0.`:
+  pcr<0.85?`Institutions writing CEs heavily → they expect market to STAY BELOW ${topRes?Math.round(topRes.strike):'resistance'}. Follow smart money — be cautious until PCR rises above 1.0.`:
+  'Institutional positioning neutral. Watch for PCR divergence to identify smart money direction.'}`;
+  }
+
+  // ─────────────────────────────────────
+  // GREEKS / GAMMA
+  // ─────────────────────────────────────
+  if (is(['greek','delta','gamma','theta','vega','gamma squeeze','greeks'])) {
+    return `🔢 GREEKS ANALYSIS — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATM Strike: ${atmStrike} | Spot: ${sp.toLocaleString('en-IN')}
+
+ATM GREEKS:
+  Delta (CE): ${(gr.atm_ce_delta||0).toFixed(3)}  ${Math.abs(gr.atm_ce_delta||0)>0.55?'(Deep ITM feel — trend move)':'(Balanced ATM)'}
+  Delta (PE): ${(gr.atm_pe_delta||0).toFixed(3)}
+  Gamma:      ${(gr.atm_gamma||0).toFixed(4)}  ${(gr.atm_gamma||0)>0.002?'⚠️ HIGH — large delta swings per point move':'Normal'}
+  Theta:      ${(gr.atm_theta||0).toFixed(2)}  (₹${Math.abs(gr.atm_theta||0).toFixed(0)}/day decay)
+  Vega:       ${(gr.atm_vega||0).toFixed(2)}   (sensitivity to 1% VIX change)
+
+  Avg CE IV: ${(gr.avg_ce_iv||0).toFixed(1)}%
+  Avg PE IV: ${(gr.avg_pe_iv||0).toFixed(1)}%
+
+MAX GAMMA STRIKE: ${gr.max_gamma_strike||'—'}
+${(gr.max_gamma||0)>0.003?`⚠️ GAMMA SQUEEZE RISK near ${gr.max_gamma_strike}. Small price moves cause large delta hedging by MMs. Expect sharp intraday spikes near this strike.`:'Normal gamma environment.'}
+
+PRACTICAL IMPLICATIONS:
+${(gr.atm_gamma||0)>0.002?'⚡ High Gamma: Buy options for explosive moves. Avoid selling — delta risk high.':'✅ Moderate Gamma: Option selling viable. Time decay working for sellers.'}
+Theta burn today: ~₹${Math.abs((gr.atm_theta||0)*100).toFixed(0)} per lot (100 qty)
+${vix>18?'⚠️ High Vega environment — IV spike will inflate premiums. Buying options risky unless direction is very clear.':'✅ Vega manageable — direction more important than timing.'}`;
+  }
+
+  // ─────────────────────────────────────
+  // DEFAULT / GENERAL FALLBACK
+  // ─────────────────────────────────────
+  return `📋 QUICK MARKET SNAPSHOT — ${currentIndex}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spot: ${sp.toLocaleString('en-IN')} | ATM: ${atmStrike} | VIX: ${vix}
+
+BIAS: ${bull?'✅ BULLISH':bear?'❌ BEARISH':'⚖️ NEUTRAL'} (${sent.bullish||0}% Bull / ${sent.bearish||0}% Bear)
+PCR: ${pcr.toFixed(2)} | Vol PCR: ${volPcr.toFixed(2)}
+Max Pain: ${Math.round(maxPain)}
+
+${topRes?`🔴 Key Resistance: ${Math.round(topRes.strike)} [${topRes.strength.toUpperCase()}] — OI: ${fmt(topRes.oi)}`:'No resistance detected'}
+${topSup?`🟢 Key Support:    ${Math.round(topSup.strike)} [${topSup.strength.toUpperCase()}] — OI: ${fmt(topSup.oi)}`:'No support detected'}
+
+OI: CE ${fmt(totalCeOI)} (${ceWriting}W/${ceUnwind}U) | PE ${fmt(totalPeOI)} (${peWriting}W/${peUnwind}U)
+
+Try asking:
+• "Market bias" — full directional analysis
+• "Support resistance" — all key zones
+• "Best trade" — entry, SL, target
+• "OI analysis" — writing/unwinding breakdown
+• "Trap detection" — bull/bear trap signals
+• "VIX analysis" — volatility interpretation
+• "PCR signal" — put-call ratio deep dive
+• "Institutional activity" — smart money positioning
+• "Greeks" — delta, gamma, theta breakdown`;
+}
+
+// ───────────────────────────────────────────────
+// MOBILE: TAB SWITCHING & DRAWER
+// ───────────────────────────────────────────────
+let mobileDrawerOpen = false;
+let currentMobileTab = 'chain';
+
+function initMobileView() {
+  if (window.innerWidth <= 900) {
+    mobileTabSwitch('chain');
+  }
+}
+
+function mobileTabSwitch(tab) {
+  currentMobileTab = tab;
+  const left = document.querySelector('.left-panel');
+  const center = document.querySelector('.center-panel');
+  const right = document.querySelector('.right-panel');
+  const aiPanel = document.getElementById('ai-panel');
+
+  // Remove all active
+  left.classList.remove('mobile-active');
+  center.classList.remove('mobile-active');
+  right.classList.remove('mobile-active');
+
+  // Deactivate all tabs
+  document.querySelectorAll('.btab').forEach(b => b.classList.remove('active'));
+
+  // Close AI panel if switching away
+  if (tab !== 'ai' && aiPanel.classList.contains('open')) {
+    aiOpen = false;
+    aiPanel.classList.remove('open');
+  }
+
+  switch(tab) {
+    case 'sentiment':
+      left.classList.add('mobile-active');
+      document.getElementById('btab-sentiment').classList.add('active');
+      break;
+    case 'chain':
+      center.classList.add('mobile-active');
+      document.getElementById('btab-chain').classList.add('active');
+      break;
+    case 'alerts':
+      right.classList.add('mobile-active');
+      document.getElementById('btab-alerts').classList.add('active');
+      break;
+    case 'ai':
+      // Show center panel as background + open AI panel
+      center.classList.add('mobile-active');
+      document.getElementById('btab-ai').classList.add('active');
+      aiOpen = true;
+      aiPanel.classList.add('open');
+      setTimeout(() => document.getElementById('ai-input').focus(), 250);
+      break;
+  }
+
+  // Close drawer when switching tabs
+  if (mobileDrawerOpen) toggleMobileDrawer();
+}
+
+function toggleMobileDrawer() {
+  mobileDrawerOpen = !mobileDrawerOpen;
+  const drawer = document.getElementById('mobile-drawer');
+  const icon = document.getElementById('hamburger-icon');
+  drawer.classList.toggle('open', mobileDrawerOpen);
+  if (icon) {
+    icon.className = mobileDrawerOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+  }
+}
+
+// Handle resize: if going from mobile to desktop, show all panels
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900) {
+    document.querySelector('.left-panel')?.classList.remove('mobile-active');
+    document.querySelector('.center-panel')?.classList.remove('mobile-active');
+    document.querySelector('.right-panel')?.classList.remove('mobile-active');
+    // Close drawer
+    if (mobileDrawerOpen) toggleMobileDrawer();
+  } else {
+    // Ensure at least one panel is visible
+    const anyActive = document.querySelector('.mobile-active');
+    if (!anyActive && document.getElementById('dashboard').style.display === 'block') {
+      mobileTabSwitch(currentMobileTab || 'chain');
+    }
+  }
+});
+
+</script>
+</body>
+</html>
