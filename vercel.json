@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/auth", "destination": "/api/auth" },
+    { "source": "/api/chain/:index", "destination": "/api/chain/[index]" },
+    { "source": "/api/ai_chat", "destination": "/api/ai_chat" },
+    { "source": "/api/logout", "destination": "/api/logout" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

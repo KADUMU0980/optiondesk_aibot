@@ -2060,9 +2060,18 @@ Try a quick button above, or ask me anything:
 // ───────────────────────────────────────────────
 // STATE
 // ───────────────────────────────────────────────
-let currentIndex = 'NIFTY';
-let refreshTimer = null;
+let currentIndex  = 'NIFTY';
+let currentExpiry = null;   // tracked client-side (stateless)
+let refreshTimer  = null;
 let lastAlertMsgs = new Set();
+
+// ── Token helper (stored in localStorage) ──
+function getToken() {
+  return localStorage.getItem('upstox_token') || '';
+}
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Upstox-Token': getToken() };
+}
 
 // ───────────────────────────────────────────────
 // HELPERS
@@ -2171,15 +2180,9 @@ function switchIndex(idx) {
 
 async function onExpiryChange(expiry) {
   if (!expiry || expiry === 'Loading...') return;
-  try {
-    await fetch(`/api/set_expiry/${currentIndex}`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({expiry})
-    });
-    clearChain();
-    fetchAndRender();
-  } catch(e) { console.error(e); }
+  currentExpiry = expiry; // track client-side — no server state needed
+  clearChain();
+  fetchAndRender();
 }
 
 function updateExpirySelector(expiries, active) {
@@ -2210,9 +2213,18 @@ function startRefresh() {
 
 async function fetchAndRender() {
   try {
-    const res = await fetch(`/api/chain/${currentIndex}`);
-    if (!res.ok) return;
+    const token = getToken();
+    if (!token) return;
+    const url = currentExpiry
+      ? `/api/chain/${currentIndex}?expiry=${encodeURIComponent(currentExpiry)}`
+      : `/api/chain/${currentIndex}`;
+    const res = await fetch(url, { headers: { 'X-Upstox-Token': token } });
+    if (!res.ok) {
+      if (res.status === 401) { handleLogout(); return; }
+      return;
+    }
     const data = await res.json();
+    if (data.error) { updateStatus(false, null); return; }
     renderAll(data);
     aiData = data;
     updateStatus(true, data.last_update);
